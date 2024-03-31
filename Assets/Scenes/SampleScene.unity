@@ -520,7 +520,8 @@ GameObject:
   - component: {fileID: 1403538311}
   - component: {fileID: 1403538310}
   - component: {fileID: 1403538313}
-  - component: {fileID: 1403538314}
+  - component: {fileID: 1403538315}
+  - component: {fileID: 1403538316}
   m_Layer: 0
   m_Name: Snail
   m_TagString: Untagged
@@ -643,8 +644,21 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!70 &1403538314
-CapsuleCollider2D:
+--- !u!114 &1403538315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1403538309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80336b9f13ea4dd4890a1558f5f46a3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 2
+--- !u!61 &1403538316
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -675,9 +689,19 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.0058581275, y: -0.4704798}
-  m_Size: {x: 1.3648616, y: 1.0590445}
-  m_Direction: 1
+  m_Offset: {x: 0.0068866313, y: -0.46140516}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2, y: 2}
+    newSize: {x: 0.64, y: 0.64}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1.2149227, y: 1.0771897}
+  m_EdgeRadius: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
