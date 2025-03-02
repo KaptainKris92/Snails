@@ -10,6 +10,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
+    private bool spaceHeld;
 
 
     private void Awake()
@@ -36,23 +37,31 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = new Vector3(4, 4, 4);
         }
 
-        // Single jump
+        // Charge jump
         if (Input.GetKey(KeyCode.Space) && grounded)
         {
-            SingleJump();
+            spaceHeld = true;
+        }
+
+        // Release to jump
+        if (Input.GetKeyUp("space"))
+        {
+            Jump();
+            spaceHeld = false;
         }
 
         //Set animator parameters
         anim.SetBool("Move", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
-
+        anim.SetBool("SpaceHeld", spaceHeld);
 
     }
 
-    private void SingleJump()
+
+
+    private void Jump()
     {
         body.velocity = new Vector2(body.velocity.x * singleJumpDistance, singleJumpHeight);
-        anim.SetTrigger("SingleJump");
         grounded = false;
     }
 
@@ -60,7 +69,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.tag == "Ground")
         {
-            grounded = true;
+            grounded = true;            
         }
     }
 
