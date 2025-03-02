@@ -27,13 +27,13 @@ public class PlayerMovement : MonoBehaviour
         body.velocity = new Vector2(Input.GetAxis("Horizontal") * speed, body.velocity.y);
 
         // Flip the player sprite when moving left and right
-        if (horizontalInput > 0f)
+        if (horizontalInput < 0f)
         {
-            transform.localScale = new Vector3(-1, 1, 1);
+            transform.localScale = new Vector3(-4, 4, 4);
         }
-        else if (horizontalInput < 0f)
+        else if (horizontalInput > 0f)
         {
-            transform.localScale = Vector3.one;
+            transform.localScale = new Vector3(4, 4, 4);
         }
 
         // Single jump
