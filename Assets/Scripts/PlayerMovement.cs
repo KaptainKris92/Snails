@@ -30,11 +30,11 @@ public class PlayerMovement : MonoBehaviour
         // Flip the player sprite when moving left and right
         if (horizontalInput < 0f)
         {
-            transform.localScale = new Vector3(-4, 4, 4);
+            transform.localScale = new Vector3(-1, 1, 1);
         }
         else if (horizontalInput > 0f)
         {
-            transform.localScale = new Vector3(4, 4, 4);
+            transform.localScale = new Vector3(1, 1, 1);
         }
 
         // Charge jump
