@@ -12,12 +12,11 @@ public class PlayerMovement : MonoBehaviour
     private bool spaceHeld = false;
     [SerializeField] private float jumpHeight = 1;    
 
-
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-    }
+    }    
 
     private void Update() // Runs on every frame of the game
     {
