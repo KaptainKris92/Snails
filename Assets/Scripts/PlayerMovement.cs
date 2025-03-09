@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.Animations;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -41,7 +42,9 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey(KeyCode.Space) && grounded)
         {
             spaceHeld = true;
-            jumpHeight += 0.01f;
+            if (jumpHeight <= 10){
+                jumpHeight += 0.05f;
+            }
         }
 
         // Release to jump
@@ -57,6 +60,8 @@ public class PlayerMovement : MonoBehaviour
         anim.SetBool("Move", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
         anim.SetBool("SpaceHeld", spaceHeld);
+
+        MoveCrosshair();
     }
 
 
@@ -75,6 +80,13 @@ public class PlayerMovement : MonoBehaviour
             grounded = true;     
             jumpHeight = 1;               
         }
+    }
+
+    private void MoveCrosshair(){
+        // Get mouse position
+        // Move crosshair towards mouse position
+        // Set limit to be radius of player
+
     }
 
 
