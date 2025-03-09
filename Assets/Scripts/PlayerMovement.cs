@@ -6,7 +6,6 @@ using UnityEngine.Animations;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float speed;
-    public GameObject crosshair;
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
@@ -60,8 +59,7 @@ public class PlayerMovement : MonoBehaviour
         anim.SetBool("Move", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
         anim.SetBool("SpaceHeld", spaceHeld);
-
-        MoveCrosshair();
+    
     }
 
 
@@ -81,13 +79,4 @@ public class PlayerMovement : MonoBehaviour
             jumpHeight = 1;               
         }
     }
-
-    private void MoveCrosshair(){
-        // Get mouse position
-        // Move crosshair towards mouse position
-        // Set limit to be radius of player
-
-    }
-
-
 }
