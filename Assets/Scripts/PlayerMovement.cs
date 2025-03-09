@@ -5,12 +5,12 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float speed;
-    [SerializeField] private float singleJumpHeight;
-    [SerializeField] private float singleJumpDistance;
+    public GameObject crosshair;
     private Rigidbody2D body;
     private Animator anim;
     private bool grounded;
-    private bool spaceHeld;
+    private bool spaceHeld = false;
+    [SerializeField] private float jumpHeight = 1;    
 
 
     private void Awake()
@@ -41,35 +41,39 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey(KeyCode.Space) && grounded)
         {
             spaceHeld = true;
+            jumpHeight += 0.01f;
         }
 
         // Release to jump
         if (Input.GetKeyUp("space"))
         {
-            Jump();
+            if (grounded){
+                Jump();
+            }
             spaceHeld = false;
-        }
+        }        
 
         //Set animator parameters
         anim.SetBool("Move", horizontalInput != 0);
         anim.SetBool("Grounded", grounded);
         anim.SetBool("SpaceHeld", spaceHeld);
-
     }
 
 
 
     private void Jump()
     {
-        body.velocity = new Vector2(body.velocity.x * singleJumpDistance, singleJumpHeight);
+        body.velocity = new Vector2(body.velocity.x * 1, jumpHeight);
         grounded = false;
+        
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.tag == "Ground")
         {
-            grounded = true;                    
+            grounded = true;     
+            jumpHeight = 1;               
         }
     }
 
