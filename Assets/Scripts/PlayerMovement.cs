@@ -1,13 +1,11 @@
 using System;
 using System.Security.Cryptography;
 using UnityEngine;
-using UnityEngine.Animations;
 
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float speed;
     private Rigidbody2D body;
-    private Animator anim;
     private bool grounded;
     private bool spaceHeld = false;
     [SerializeField] private float jumpHeight = 1;    
@@ -15,7 +13,6 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
     }    
 
     private void Update() // Runs on every frame of the game
@@ -53,11 +50,6 @@ public class PlayerMovement : MonoBehaviour
             }
             spaceHeld = false;
         }        
-
-        //Set animator parameters
-        anim.SetBool("Move", horizontalInput != 0);
-        anim.SetBool("Grounded", grounded);
-        anim.SetBool("SpaceHeld", spaceHeld);
     
     }
 
