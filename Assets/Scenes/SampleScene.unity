@@ -945,7 +945,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bullet: {fileID: 6001043174517268345, guid: 3773e0a4553ed13439f5d7a3a8d8d9de, type: 3}
-  bulletTransform: {fileID: 0}
+  bulletTransform: {fileID: 2118732213}
   canFire: 1
   timeBetweenFiring: 0.5
 --- !u!1660057539 &9223372036854775807
