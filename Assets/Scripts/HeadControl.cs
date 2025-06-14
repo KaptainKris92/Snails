@@ -13,6 +13,9 @@ public class HeadControl : MonoBehaviour
     private bool extending = false;
     private bool retracting = false;
     private ActionSettings currentAction;
+    private Rigidbody2D shellRb;
+
+    private FixedJoint2D fixedJoint;
 
     public enum ActionType
     {
@@ -29,14 +32,25 @@ public class HeadControl : MonoBehaviour
 
     }
 
+    void Awake()
+    {
+        shellRb = shell.GetComponent<Rigidbody2D>();
+
+        // Get fixed joint and it's connected rb 
+        fixedJoint = GetComponent<FixedJoint2D>();
+        fixedJoint.connectedBody = shellRb;
+    }
+
 
     void Update()
     {
         // Snail head always follows mouse direction
         RotateToMouse();
 
+
+
         // Left click = Jump
-        if (Input.GetMouseButtonDown(0) && !extending && !retracting)
+        if (Input.GetKeyDown("space") && !extending && !retracting)
         {
             extending = true;
             currentDistance = 0f;
@@ -47,7 +61,7 @@ public class HeadControl : MonoBehaviour
                 direction = transform.up
             };
         }
-        
+
         else if (Input.GetMouseButtonDown(1) && !extending && !retracting)
         {
             extending = true;
@@ -63,8 +77,12 @@ public class HeadControl : MonoBehaviour
 
     void FixedUpdate()
     {
+
         if (extending)
         {
+            // Disable the join when head is extending
+            if (fixedJoint.enabled) fixedJoint.enabled = false;
+
             currentDistance += extendSpeed * Time.fixedDeltaTime;
             if (currentDistance >= extendDistance)
             {
@@ -75,16 +93,26 @@ public class HeadControl : MonoBehaviour
         }
         else if (retracting)
         {
+
+
             currentDistance -= retractSpeed * Time.fixedDeltaTime;
             if (currentDistance <= 0f)
             {
                 currentDistance = 0f;
                 retracting = false;
+
+                // Re-enable joint once finished retracting.
+                if (!fixedJoint.enabled) fixedJoint.enabled = true;
             }
+
         }
 
-        // Move outward in the direction the head is currently facing
-        rb.MovePosition(shell.position - transform.up * currentDistance);
+        // Apply movement only when the fixedJoint is disabled
+        if (!fixedJoint.enabled)
+        {
+            Vector2 targetPosition = shellRb.position - (Vector2)(transform.up * currentDistance);
+            rb.MovePosition(targetPosition);
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
