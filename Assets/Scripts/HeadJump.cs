@@ -17,15 +17,7 @@ public class HeadJump : MonoBehaviour
 
     void Update()
     {
-        
-
-
-        // Rotate toward the mouse
-        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorld.z = 0f;
-        Vector3 dir = (mouseWorld - shell.position).normalized;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + 90f;
-        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        RotateToMouse();
 
         // Trigger extension on click
         if (Input.GetMouseButtonDown(0) && !extending && !retracting)
@@ -65,15 +57,25 @@ public class HeadJump : MonoBehaviour
     {
         Debug.Log($"Piston hit: {collision.collider.name} on layer {LayerMask.LayerToName(collision.collider.gameObject.layer)}");
         if (extending && collision.collider.gameObject.layer != LayerMask.NameToLayer("ShellLayer"))
-            {
-                Rigidbody2D shellRb = shell.GetComponent<Rigidbody2D>();
-                shellRb.AddForce(-transform.up * jumpForce, ForceMode2D.Impulse);
+        {
+            Rigidbody2D shellRb = shell.GetComponent<Rigidbody2D>();
+            shellRb.AddForce(-transform.up * jumpForce, ForceMode2D.Impulse);
 
-                // Optional: halt head for visual impact
-                currentDistance = extendDistance;
-                extending = false;
-                retracting = true;
-            }
+            // Optional: halt head for visual impact
+            currentDistance = extendDistance;
+            extending = false;
+            retracting = true;
+        }
+    }
+
+    void RotateToMouse() {
+        // Rotate toward the mouse
+        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorld.z = 0f; // Ignore 3D axis
+        Vector3 dir = (mouseWorld - shell.position).normalized;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + 90f;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+
     }
 
 }
