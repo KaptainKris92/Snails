@@ -227,7 +227,7 @@ MonoBehaviour:
   extendDistance: 2
   extendSpeed: 10
   retractSpeed: 15
-  jumpForce: 5
+  jumpForce: 100
 --- !u!70 &40581883
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

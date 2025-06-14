@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Snails.sln"
+    "dotnet.defaultSolution": "Snails.sln",
+    "cSpell.enabled": false
 }
