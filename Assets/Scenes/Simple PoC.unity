@@ -5826,8 +5826,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e0129af72e4114b9de0b5a3d38bb2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveForce: 10
-  torqueForce: 5
+  moveForce: 5
+  torqueForce: 1
 --- !u!232 &1035784544
 DistanceJoint2D:
   m_ObjectHideFlags: 0
@@ -11860,7 +11860,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -11891,8 +11891,8 @@ LineRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.021213531
-        value: 0.24827576
+        time: 0.027275085
+        value: 0.15171814
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -11904,8 +11904,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 0.6666667, g: 0.50980395, b: 0.19215688, a: 1}
+      key1: {r: 0.6666667, g: 0.50980395, b: 0.19215688, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -11928,7 +11928,7 @@ LineRenderer:
       atime5: 0
       atime6: 0
       atime7: 0
-      m_Mode: 0
+      m_Mode: 1
       m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
