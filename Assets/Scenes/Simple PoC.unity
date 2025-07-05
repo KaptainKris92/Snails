@@ -6363,7 +6363,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 10
+  m_Mass: 20
   m_LinearDrag: 0
   m_AngularDrag: 1.5
   m_GravityScale: 1
@@ -6427,8 +6427,6 @@ MonoBehaviour:
   grappleJoint: {fileID: 1035784544}
   grappleLine: {fileID: 1035784546}
   grappleAnchorPrefab: {fileID: 1085550101733579573, guid: 71c5121d861766c42967e21bb2b15653, type: 3}
-  grappleSpeed: 20
-  grappleMaxLength: 10
   grappleLayerMask:
     serializedVersion: 2
     m_Bits: 128
@@ -6436,6 +6434,12 @@ MonoBehaviour:
   defaultMaterial: {fileID: 6200000, guid: cdc22239ed3a023469fc99033cc19d11, type: 2}
   grappledMaterial: {fileID: 6200000, guid: 59c8a6952b2d0ff458f9e9487b36ec0a, type: 2}
   segments: 10
+  grappleSpeed: 20
+  grappleMaxLength: 8
+  grappleAdjustSpeed: 5.5
+  releaseBoost: 10
+  quickPullSpeed: 10
+  jumpForce: 10
 --- !u!120 &1035784546
 LineRenderer:
   serializedVersion: 2
