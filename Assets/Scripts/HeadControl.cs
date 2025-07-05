@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class HeadControl : MonoBehaviour
@@ -16,19 +17,48 @@ public class HeadControl : MonoBehaviour
     private float grappleCurrentLength = 0f;
     private Vector2 grappleDirection;
     private Vector2 grappleEnd;
+    [SerializeField] private Material grappleLineMaterial;
+    [SerializeField] private PhysicsMaterial2D defaultMaterial;
+    [SerializeField] private PhysicsMaterial2D grappledMaterial;
+
+    private Collider2D shellCollider;
+
+    [SerializeField] private int segments = 10; // Number of points along the grapple line
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
 
+        // Initialise grapple joint
+        AwakeGrapple();
+
+        // Initialise shell materials
+        shellCollider = GetComponent<Collider2D>();
+        shellCollider.sharedMaterial = defaultMaterial;
+
+    }
+
+    private void AwakeGrapple()
+    {
         grappleJoint = GetComponent<DistanceJoint2D>();
         grappleJoint.enabled = false;
         grappleJoint.autoConfigureConnectedAnchor = false;
 
-        grappleLine.enabled = false;
-        grappleLine.positionCount = 2;
-        grappleLine.SetPosition(0, Vector3.zero);
-        grappleLine.SetPosition(1, Vector3.zero);
+        grappleLine.enabled = false; // Disable, otherwise spawns to centre of scene
+
+
+        // Initialise all positions to players current position to avoid frame-1 interpolation glitches
+        grappleLine.positionCount = segments; // Necessary?
+        for (int i = 0; i < segments; i++)
+        {
+            grappleLine.SetPosition(i, rb.position);
+        }
+
+        grappleLine.material = grappleLineMaterial;
+        grappleLine.textureMode = LineTextureMode.Tile;
+
+        // Rounded start and end 
+        grappleLine.numCapVertices = 8;
     }
 
     void Update()
@@ -42,6 +72,16 @@ public class HeadControl : MonoBehaviour
             grappleDirection = (mouseWorld - rb.position).normalized;
             grappleEnd = rb.position;
             grappleCurrentLength = 0f;
+
+            // Set up segment count
+            grappleLine.positionCount = segments;
+
+            // Initialise all segment positions to the same starting point (player position) to avoid frame of incorrect LineRenderer
+            Vector3 startPos = rb.position;
+            for (int i = 0; i < segments; i++)
+            {
+                grappleLine.SetPosition(i, startPos);
+            }
 
             grappleLine.enabled = true;
         }
@@ -91,28 +131,39 @@ public class HeadControl : MonoBehaviour
                     return;
                 }
 
-                // Connect DistanceJoint2D to the anchor's RigidBody2D
-                grappleJoint.connectedBody = anchorRb;
-                grappleJoint.autoConfigureConnectedAnchor = false;                
-                grappleJoint.distance = Vector2.Distance(rb.position, hit.point);
-                grappleJoint.enabled = true;
+                // Delay setting the connectedBody by one FixedUpdate
+                StartCoroutine(EnableGrappleNextPhysicsFrame(anchorRb, hit.point));
 
-                grappleLine.SetPosition(1, hit.point);
+                // Change shell material to make more bouncy when attached
+                shellCollider.sharedMaterial = grappledMaterial;
             }
         }
 
+        // When grapple line is attached
         if (grappleLine.enabled)
         {
-            grappleLine.SetPosition(0, rb.position);
+            grappleLine.positionCount = segments;
+            // Determine the current target endpoint
+            Vector3 endPoint = (grappleHit && grappleJoint.connectedBody != null)
+                ? (Vector3)grappleJoint.connectedBody.position
+                : grappleEnd;
 
-            if (grappleHit && grappleJoint.connectedBody != null)
+            // Direction of the rope
+            Vector3 startPoint = rb.position;
+            Vector3 direction = (endPoint - startPoint).normalized;
+
+            for (int i = 0; i < segments; i++)
             {
-                grappleLine.SetPosition(1, grappleJoint.connectedBody.position);
-            }
-            else
-            {
-                // Still firing or retracting
-                grappleLine.SetPosition(1, grappleEnd);
+                float t = i / (float)(segments - 1);
+                Vector3 point = Vector3.Lerp(startPoint, endPoint, t);
+
+                // Add sinusoidal wobble perpendicular to rope
+                float wobbleAmplitude = 0.05f;
+                float wave = Mathf.Sin(Time.time * 10f + t * 10f) * wobbleAmplitude;
+                Vector3 perpendicular = Vector3.Cross(direction, Vector3.forward).normalized; // 2D perpendicular
+                point += perpendicular * wave;
+
+                grappleLine.SetPosition(i, point);
             }
         }
 
@@ -134,6 +185,8 @@ public class HeadControl : MonoBehaviour
         }
 
     }
+
+    // Not private in case want environment or something to cancel grapple.
     void CancelGrapple()
     {
         grappleJoint.enabled = false;
@@ -148,5 +201,21 @@ public class HeadControl : MonoBehaviour
         grappleLine.enabled = false;
         grappleHit = false;
         isFiringGrapple = false;
+
+        // Switch back to default material
+        shellCollider.sharedMaterial = defaultMaterial;
+    }
+
+    // Waits until next FixedUpdate (frame) before enabling lineRenderer to avoid flickering.
+    private IEnumerator EnableGrappleNextPhysicsFrame(Rigidbody2D anchorRb, Vector2 hitPoint)
+    {
+        yield return new WaitForFixedUpdate();
+
+        grappleJoint.connectedBody = anchorRb;
+        grappleJoint.autoConfigureConnectedAnchor = false;
+        grappleJoint.distance = Vector2.Distance(rb.position, hitPoint);
+        grappleJoint.enabled = true;
+
+        grappleLine.SetPosition(1, hitPoint);
     }
 }

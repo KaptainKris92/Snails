@@ -6432,6 +6432,10 @@ MonoBehaviour:
   grappleLayerMask:
     serializedVersion: 2
     m_Bits: 128
+  grappleLineMaterial: {fileID: 2100000, guid: ca55308b0c8ddd14b90b10d25872f2ed, type: 2}
+  defaultMaterial: {fileID: 6200000, guid: cdc22239ed3a023469fc99033cc19d11, type: 2}
+  grappledMaterial: {fileID: 6200000, guid: 59c8a6952b2d0ff458f9e9487b36ec0a, type: 2}
+  segments: 10
 --- !u!120 &1035784546
 LineRenderer:
   serializedVersion: 2
@@ -6484,14 +6488,32 @@ LineRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.015151978
-        value: 0.22068977
-        inSlope: 0
-        outSlope: 0
+        time: 0.0019264221
+        value: 0.16737556
+        inSlope: 2.2788725
+        outSlope: 2.2788725
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 1
+      - serializedVersion: 3
+        time: 0.037267517
+        value: 0.2761395
+        inSlope: -0.04883166
+        outSlope: -0.04883166
         tangentMode: 0
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.7242424
+        value: 0.11034482
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -13018,7 +13040,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: ca55308b0c8ddd14b90b10d25872f2ed, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -13062,8 +13084,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.6666667, g: 0.50980395, b: 0.19215688, a: 1}
-      key1: {r: 0.6666667, g: 0.50980395, b: 0.19215688, a: 1}
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -13086,8 +13108,8 @@ LineRenderer:
       atime5: 0
       atime6: 0
       atime7: 0
-      m_Mode: 1
-      m_ColorSpace: -1
+      m_Mode: 0
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
