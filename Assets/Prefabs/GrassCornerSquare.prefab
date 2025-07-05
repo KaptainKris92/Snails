@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4885548538103864534}
   - component: {fileID: 8955921645270262393}
   m_Layer: 7
-  m_Name: Square
+  m_Name: GrassCornerSquare
   m_TagString: Tile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -74,8 +74,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 8ed580905eb38f34294ae18a03744512, type: 3}
-  m_Color: {r: 0.27058825, g: 0.6784314, b: 0.40784317, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 7202f25bbf256f74d928239b6ab68daf, type: 3}
+  m_Color: {r: 0.7924528, g: 0.7924528, b: 0.7924528, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
