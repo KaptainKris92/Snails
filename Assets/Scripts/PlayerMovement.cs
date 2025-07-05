@@ -3,10 +3,18 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveForce = 10f;
-    public float torqueForce = 5f;
 
+    [Header("MovementSettings")]
+    [SerializeField] private float normalMoveForce = 0.01f;
+    [SerializeField] private float grappledMoveForce = 0.05f;
+
+    [Header("Spin settings")]
+    [SerializeField] private float normalTorqueForce = 0.05f;
+    [SerializeField] private float grappledTorqueForce = 0.05f;
+
+    [Header("References")]
     private Rigidbody2D rb;
+    [SerializeField] private HeadControl headControl; // Assign in inspector
 
     void Awake()
     {
@@ -17,10 +25,16 @@ public class PlayerMovement : MonoBehaviour
     {
         float horizontal = Input.GetAxis("Horizontal");
 
-        // Add force to move left/right
-        rb.AddForce(new Vector2(horizontal * moveForce, 0f));
+        float moveForce = headControl != null && headControl.isGrappled
+            ? grappledMoveForce
+            : normalMoveForce;
 
-        // Add torque to roll the ball
+        float torqueForce = headControl != null && headControl.isGrappled
+            ? grappledTorqueForce
+            : normalTorqueForce;
+
+        // Apply left/right force and torque
+        rb.AddForce(new Vector2(horizontal * moveForce, 0f));
         rb.AddTorque(-horizontal * torqueForce);
     }
 }

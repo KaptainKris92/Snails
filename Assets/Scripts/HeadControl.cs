@@ -17,11 +17,13 @@ public class HeadControl : MonoBehaviour
     // Shell components
     private Rigidbody2D rb; // The shell's rigidbody
     private Collider2D shellCollider;
+    private HeadControl headControl;
 
     // Variables for actions
     //// Grapple
     private bool isFiringGrapple = false;
     private bool grappleHit = false;
+    public bool isGrappled => grappleJoint.enabled;
     private float grappleCurrentLength = 0f;
     private Vector2 grappleDirection;
     private Vector2 grappleEnd;
@@ -42,9 +44,11 @@ public class HeadControl : MonoBehaviour
 
     //// Jump
     [SerializeField] private float jumpForce = 10f;
+    
 
     void Awake()
     {
+        headControl = GetComponent<HeadControl>();
         // Initialise shell materials
         rb = GetComponent<Rigidbody2D>();
         shellCollider = GetComponent<Collider2D>();
@@ -188,9 +192,16 @@ public class HeadControl : MonoBehaviour
     public void CancelGrapple()
     {
 
+        // Cache velocity just before joint removal
+        Vector2 currentVelocity = rb.velocity;
+        
+
         // Disable the joint
         grappleJoint.enabled = false;
         grappleJoint.connectedBody = null;
+
+        // Restore the momentum to the shell
+        rb.velocity = currentVelocity;
 
         if (currentAnchorInstance != null)
         {
