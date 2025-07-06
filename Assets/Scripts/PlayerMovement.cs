@@ -1,81 +1,90 @@
-using System;
-using System.Security.Cryptography;
+using System.Security.Permissions;
 using UnityEngine;
-using UnityEngine.Animations;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private float speed;
-    private Rigidbody2D body;
-    private Animator anim;
-    private bool grounded;
-    private bool spaceHeld = false;
-    [SerializeField] private float jumpHeight = 1;    
 
-    private void Awake()
+    [Header("MovementSettings")]
+    [SerializeField] private float normalMoveForce = 0.01f;
+    [SerializeField] private float grappledMoveForce = 0.05f;
+
+    [Header("Spin settings")]
+    [SerializeField] private float normalTorqueForce = 0.05f;
+    [SerializeField] private float grappledTorqueForce = 0.05f;
+
+    [Header("References")]
+    private Rigidbody2D rb;
+    [SerializeField] private HeadControl headControl; // Assign in inspector
+
+    private Vector2 spawnPoint;
+
+    void Awake()
     {
-        body = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
-    }    
-
-    private void Update() // Runs on every frame of the game
-    {
-        // Horizontal input 
-        float horizontalInput = Input.GetAxis("Horizontal");
-
-        // Player movement based on horizontal input 
-        body.velocity = new Vector2(Input.GetAxis("Horizontal") * speed, body.velocity.y);
-
-        // Flip the player sprite when moving left and right
-        if (horizontalInput < 0f)
-        {
-            transform.localScale = new Vector3(-1, 1, 1);
-        }
-        else if (horizontalInput > 0f)
-        {
-            transform.localScale = new Vector3(1, 1, 1);
-        }
-
-        // Charge jump
-        if (Input.GetKey(KeyCode.Space) && grounded)
-        {
-            spaceHeld = true;
-            if (jumpHeight <= 10){
-                jumpHeight += 0.05f;
-            }
-        }
-
-        // Release to jump
-        if (Input.GetKeyUp("space"))
-        {
-            if (grounded){
-                Jump();
-            }
-            spaceHeld = false;
-        }        
-
-        //Set animator parameters
-        anim.SetBool("Move", horizontalInput != 0);
-        anim.SetBool("Grounded", grounded);
-        anim.SetBool("SpaceHeld", spaceHeld);
-    
+        rb = GetComponent<Rigidbody2D>();
     }
 
-
-
-    private void Jump()
+    void Start()
     {
-        body.velocity = new Vector2(body.velocity.x * 1, jumpHeight);
-        grounded = false;
+        spawnPoint = transform.position;
+
+        if (TimerManager.instance != null)
+        {
+            TimerManager.instance.StartTimer();
+        }
+
+        DisableFinishPanel();
+    }
+
+    void Update()
+    {
+        float horizontal = Input.GetAxis("Horizontal");
+
+        float moveForce = headControl != null && headControl.isGrappled
+            ? grappledMoveForce
+            : normalMoveForce;
+
+        float torqueForce = headControl != null && headControl.isGrappled
+            ? grappledTorqueForce
+            : normalTorqueForce;
+
+        // Apply left/right force and torque
+        rb.AddForce(new Vector2(horizontal * moveForce, 0f));
+        rb.AddTorque(-horizontal * torqueForce);
+
+        // Press 'R' to reset to spawn point
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            // If paused, unpause before reset
+            if (Time.timeScale == 0f)
+            {
+                Time.timeScale = 1f;
+            }
+            ResetPlayer();
+        }
+    }
+
+    public void ResetPlayer()
+    {
+        DisableFinishPanel();
         
+        if (headControl != null)
+            headControl.CancelGrapple();
+
+        rb.velocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        transform.position = spawnPoint;
+
+        if (TimerManager.instance != null)
+        {
+            TimerManager.instance.StartTimer();
+        }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    public void DisableFinishPanel()
     {
-        if (collision.gameObject.tag == "Ground")
-        {
-            grounded = true;     
-            jumpHeight = 1;               
-        }
+        GameObject finishPanel = GameObject.Find("FinishPanel");
+        if (finishPanel != null)
+            finishPanel.SetActive(false);
     }
 }

@@ -5,17 +5,18 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
+  - Tile
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - SnailShell
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - SnailHead
+  - Environment
+  - GrappleAnchor
+  - GrappleLine
   - 
   - 
   - 

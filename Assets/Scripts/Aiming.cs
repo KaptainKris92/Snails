@@ -1,46 +1,34 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Aiming : MonoBehaviour
-{   
-    private Camera mainCam;
-    private Vector3 mousePos; 
-    public GameObject bullet;
-    public Transform bulletTransform;
-    public bool canFire = true;
-    private float timer;
-    public float timeBetweenFiring = 0.5f;
+{
+    public Transform shell;              // Reference to the player    
+    [SerializeField] private float maxDistance = 5f;
+    
 
 
-    // Start is called before the first frame update
     void Start()
     {
-        mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        if (shell == null)
+        {
+            Debug.LogError("Aiming: Ball reference is not assigned!");
+        }
     }
 
-    // Update is called once per frame
     void Update()
     {
-        mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorld.z = 0f;
 
-        Vector3 rotation = mousePos - transform.position;
+        Vector3 toMouse = mouseWorld - shell.position;
 
-        float rotZ = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, rotZ);
-
-        // If bullet collides with something, then set canFire to true. For now, this is just a timer.
-        if(!canFire){
-            timer += Time.deltaTime;
-            if(timer > timeBetweenFiring){
-                canFire = true;
-            }
-
+        // Clamp distance to maxDistance
+        if (toMouse.magnitude > maxDistance)
+        {
+            toMouse = toMouse.normalized * maxDistance;
         }
 
-        if (Input.GetMouseButton(0) && canFire){
-            canFire = false;
-            Instantiate(bullet, bulletTransform.position, Quaternion.identity);
-        }
+        transform.position = shell.position + toMouse;
     }
+
 }
