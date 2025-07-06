@@ -74,7 +74,6 @@ public class HeadControl : MonoBehaviour
 
     [Header("Jump settings")]
     //// Jump
-    [SerializeField] private float jumpExtendSpeed = 30f;
     [SerializeField] private float jumpMaxLength = 10f;
     [SerializeField] private float jumpDuration = 0.6f;
     [SerializeField] private AnimationCurve jumpPushCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
