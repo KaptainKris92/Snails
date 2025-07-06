@@ -6763,7 +6763,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   normalMoveForce: 0.01
-  grappledMoveForce: 0.05
+  grappledMoveForce: 0.1
   normalTorqueForce: 0.05
   grappledTorqueForce: 0.05
   headControl: {fileID: 1035784545}
@@ -6812,8 +6812,35 @@ MonoBehaviour:
   grappleSpeed: 20
   grappleMaxLength: 8
   grappleAdjustSpeed: 5.5
-  releaseBoost: 10
   quickPullSpeed: 10
+  quickPullExtendSpeed: 30
+  momentumCarryFrames: 8
+  momentumDecay: 0.9
+  quickPullDuration: 0.6
+  quickPullSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   jumpForce: 10
 --- !u!120 &1035784546
 LineRenderer:
