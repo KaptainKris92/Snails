@@ -27,6 +27,13 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         spawnPoint = transform.position;
+
+        if (TimerManager.instance != null)
+        {
+            TimerManager.instance.StartTimer();
+        }
+
+        DisableFinishPanel();
     }
 
     void Update()
@@ -48,17 +55,36 @@ public class PlayerMovement : MonoBehaviour
         // Press 'R' to reset to spawn point
         if (Input.GetKeyDown(KeyCode.R))
         {
+            // If paused, unpause before reset
+            if (Time.timeScale == 0f)
+            {
+                Time.timeScale = 1f;
+            }
             ResetPlayer();
         }
     }
 
     public void ResetPlayer()
     {
+        DisableFinishPanel();
+        
         if (headControl != null)
             headControl.CancelGrapple();
 
         rb.velocity = Vector2.zero;
         rb.angularVelocity = 0f;
         transform.position = spawnPoint;
+
+        if (TimerManager.instance != null)
+        {
+            TimerManager.instance.StartTimer();
+        }
+    }
+
+    public void DisableFinishPanel()
+    {
+        GameObject finishPanel = GameObject.Find("FinishPanel");
+        if (finishPanel != null)
+            finishPanel.SetActive(false);
     }
 }
