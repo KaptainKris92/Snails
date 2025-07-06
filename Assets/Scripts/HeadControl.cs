@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class HeadControl : MonoBehaviour
@@ -19,7 +20,7 @@ public class HeadControl : MonoBehaviour
     // Shell components
     private Rigidbody2D rb; // The shell's rigidbody
     private Collider2D shellCollider;
-    private HeadControl headControl;
+    private HeadControl headControl; // Used by PlayerMovement?
 
     [Header("Grapple settings")]
     // Variables for actions
@@ -58,24 +59,28 @@ public class HeadControl : MonoBehaviour
     [SerializeField] private float quickPullExtendSpeed = 30f;
 
     private bool isQuickPulling = false;
-    private bool quickPullActive = false; // Only when joint is connected during quick pull
-    private Vector2 quickPullTarget;
-
-    // Momentum conservation
-    [SerializeField] private int momentumCarryFrames = 8;
-    [SerializeField] private float momentumDecay = 0.9f; // per frame multiplier
-    private int momentumFramesRemaining = 0;
-    private Vector2 cachedMomentum = Vector2.zero;
+    private bool quickPullActive = false; // Only when joint is connected during quick pull 
 
     // Make quickpull start slow and reach maximum by mid point
     [SerializeField] private float quickPullDuration = 0.6f;
     [SerializeField] private AnimationCurve quickPullSpeedCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     private float quickPullElapsed = 0f;
+    private float lastDistanceToAnchor = Mathf.Infinity;
+    [SerializeField] private float quickPullGraceTime = 0.15f; // So that quick pull works on initial attach if player is still
+    [SerializeField] private float quickPullStuckTolerance = 0.02f;
+
+    [SerializeField] private float pullBoostFactor = 0.8f; // For adding 'pull' momentum upon quickpull release
 
 
     [Header("Jump settings")]
     //// Jump
     [SerializeField] private float jumpForce = 10f;
+
+    [Header("Gravity settings")]
+    private float baseGravityScale = 1.0f;
+    // [SerializeField] private float upwardGravityMultiplifer = 0.5f; // Lower = floatier
+    [SerializeField] private float minUpwardGravityScale = 0.2f; // Prevent zero gravity
+    [SerializeField] private float upwardVelocitySmoothing = 10f; // Higher = gravity decays slower on fast pulls
 
 
     void Awake()
@@ -109,6 +114,8 @@ public class HeadControl : MonoBehaviour
 
     void FixedUpdate()
     {
+        AdjustGravity();
+
         if (isFiringGrapple && !grappleHit)
             AnimateGrappleExtension();
 
@@ -117,14 +124,7 @@ public class HeadControl : MonoBehaviour
 
         UpdateLineRenderer();
         HandleGrappleAdjust();
-        HandleQuickPull();
-
-        // Adds decaying force in cached direction when quick pull is released. // CHECK IF ACTUALLY BEING USED
-        if (momentumFramesRemaining > 0)
-        {
-            rb.AddForce(cachedMomentum * (Mathf.Pow(momentumDecay, momentumCarryFrames - momentumFramesRemaining)), ForceMode2D.Force);
-            momentumFramesRemaining--;
-        }
+        HandleQuickPull();    
 
         if (isWobbling)
         {
@@ -232,8 +232,8 @@ public class HeadControl : MonoBehaviour
 
             if (isQuickPulling)
             {
-                quickPullTarget = hit.point;
                 quickPullElapsed = 0f;
+                lastDistanceToAnchor = Vector2.Distance(rb.position, hit.point);
             }
         }
     }
@@ -263,10 +263,7 @@ public class HeadControl : MonoBehaviour
         {
             isRetractingGrapple = true;
             return; // Delay reset until retraction finishes.
-        }
-        // Capture the current momentum
-        cachedMomentum = rb.velocity;
-        momentumFramesRemaining = momentumCarryFrames;
+        }        
 
         // Disable the joint
         grappleJoint.enabled = false;
@@ -287,7 +284,7 @@ public class HeadControl : MonoBehaviour
         isRetractingGrapple = false;
 
         // Switch back to default material
-        shellCollider.sharedMaterial = defaultMaterial;
+        shellCollider.sharedMaterial = defaultMaterial;        
     }
 
     // Waits until next FixedUpdate (frame) before enabling lineRenderer to avoid flickering.
@@ -364,6 +361,22 @@ public class HeadControl : MonoBehaviour
         StartLineAnimation();
     }
 
+    private void AdjustGravity()
+    {
+        float verticalVelocity = rb.velocity.y;
+
+        if (verticalVelocity > 0f)
+        {
+            // When player moving upwards, reduce gravity based on player's speed
+            float dynamicScale = Mathf.Lerp(minUpwardGravityScale, baseGravityScale, verticalVelocity / upwardVelocitySmoothing);
+            rb.gravityScale = Mathf.Clamp(dynamicScale, minUpwardGravityScale, baseGravityScale);
+        }
+        else // Whenever falling or stationary
+        {
+            rb.gravityScale = baseGravityScale;
+        }
+    }
+
     private void HandleGrappleAdjust()
     // Adjust grapple length with keys
     {
@@ -386,16 +399,24 @@ public class HeadControl : MonoBehaviour
         // Only if quick pulling and attached
         if (!quickPullActive || !grappleJoint.enabled || !grappleHit || currentAnchorInstance == null)
             return;
-
-        // Not currently used but may do
+        
         float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
 
-        quickPullElapsed += Time.fixedDeltaTime;
+        // ✅ DEBUG radial speed while pulling        
+        float radialSpeed = (lastDistanceToAnchor - currentDistanceToAnchor) / Time.fixedDeltaTime;
+        Debug.Log($"[QuickPull] Radial Speed: {radialSpeed:F2}");
+
+        // Elapsed time only increased if player actively moving closer to point
+        if (quickPullElapsed < quickPullGraceTime || currentDistanceToAnchor < lastDistanceToAnchor - quickPullStuckTolerance) // 0.01f is tolerance
+        {
+            quickPullElapsed += Time.fixedDeltaTime;
+        }
+
+        lastDistanceToAnchor = currentDistanceToAnchor;
+
         float t = Mathf.Clamp01(quickPullElapsed / quickPullDuration);
         float speedMultiplier = quickPullSpeedCurve.Evaluate(t);
-
-        // Optional: map curve output to speed value
-        float dynamicSpeed = quickPullSpeed * speedMultiplier;
+        float dynamicSpeed = quickPullSpeed * speedMultiplier; // Map curve output to speed value
 
         grappleJoint.distance = Mathf.Max(grappleMinLength, grappleJoint.distance - dynamicSpeed * Time.fixedDeltaTime);
 
@@ -415,8 +436,39 @@ public class HeadControl : MonoBehaviour
 
     private void StartRetraction()
     {
+        Debug.Log($"StartRetraction() called");
+        Debug.Log($"StartRetraction: quickPullActive={quickPullActive}, anchor exists={currentAnchorInstance != null}");
+
         if (!grappleLine.enabled || isRetractingGrapple)
             return;
+
+        // Inject impulse momentum immediately if quick pulling
+        if (quickPullActive && currentAnchorInstance != null)
+        {
+
+            Vector2 anchorPos = currentAnchorInstance.transform.position;
+            Vector2 toAnchor = (anchorPos - rb.position).normalized;
+
+            // Project velocity toward anchor
+            float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
+            float radialSpeed = (lastDistanceToAnchor - currentDistanceToAnchor) / Time.fixedDeltaTime;
+
+            // If moving towards the anchor, inject a bit of impulse in that direction
+            Debug.Log($"RadialSpeed = {radialSpeed}");
+
+            if (radialSpeed > 0f)
+            {
+                Vector2 impulse = toAnchor * radialSpeed * pullBoostFactor;
+
+                rb.AddForce(impulse, ForceMode2D.Impulse);
+                Debug.Log($"Impulse of {impulse} has been added.");
+                Debug.DrawLine(rb.position, rb.position + impulse, Color.red, 2f);
+            }
+            else
+            {
+                Debug.Log("[QuickPullRelease] Radial speed too low to apply impulse.");
+            }
+        }
 
         isRetractingGrapple = true;
         isFiringGrapple = false;

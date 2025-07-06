@@ -6811,15 +6811,13 @@ MonoBehaviour:
   segments: 20
   grappleSpeed: 20
   grappleRetractionSpeed: 50
-  grappleMaxLength: 8
+  grappleMaxLength: 15
   grappleAdjustSpeed: 5.5
   initialWobbleAmplitude: 0.05
   initialWobbleFrequency: 1
   wobbleDecayDuration: 0.7
   quickPullSpeed: 10
   quickPullExtendSpeed: 30
-  momentumCarryFrames: 8
-  momentumDecay: 0.9
   quickPullDuration: 0.6
   quickPullSpeedCurve:
     serializedVersion: 2
@@ -6845,7 +6843,12 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  quickPullGraceTime: 0.15
+  quickPullStuckTolerance: 0.01
+  pullBoostFactor: 0.1
   jumpForce: 10
+  minUpwardGravityScale: 1
+  upwardVelocitySmoothing: 10
 --- !u!120 &1035784546
 LineRenderer:
   serializedVersion: 2
