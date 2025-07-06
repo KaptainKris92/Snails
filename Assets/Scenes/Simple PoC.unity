@@ -6808,12 +6808,13 @@ MonoBehaviour:
   grappleLineMaterial: {fileID: 2100000, guid: ca55308b0c8ddd14b90b10d25872f2ed, type: 2}
   defaultMaterial: {fileID: 6200000, guid: cdc22239ed3a023469fc99033cc19d11, type: 2}
   grappledMaterial: {fileID: 6200000, guid: 59c8a6952b2d0ff458f9e9487b36ec0a, type: 2}
-  segments: 10
+  segments: 20
   grappleSpeed: 20
+  grappleRetractionSpeed: 50
   grappleMaxLength: 8
   grappleAdjustSpeed: 5.5
-  initialWobbleAmplitude: 0.15
-  initialWobbleFrequency: 10
+  initialWobbleAmplitude: 0.05
+  initialWobbleFrequency: 1
   wobbleDecayDuration: 0.7
   quickPullSpeed: 10
   quickPullExtendSpeed: 30

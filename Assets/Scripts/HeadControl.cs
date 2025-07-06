@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 public class HeadControl : MonoBehaviour
-{   
+{
     [Header("Grapple components")]
     // Grapple components
     [SerializeField] private DistanceJoint2D grappleJoint;
@@ -25,17 +25,19 @@ public class HeadControl : MonoBehaviour
     // Variables for actions
     //// Grapple
     private bool isFiringGrapple = false;
+    private bool isRetractingGrapple = false;
     private bool grappleHit = false;
 
     private bool _isGrappled = false;
     public bool isGrappled => _isGrappled;
-    
+
     private float grappleCurrentLength = 0f;
     private Vector2 grappleDirection;
     private Vector2 grappleEnd;
 
     [SerializeField] private int segments = 10; // Number of points along the grapple line
-    [SerializeField] private float grappleSpeed = 20f;
+    [SerializeField] private float grappleSpeed = 20f; // Extension speed
+    [SerializeField] private float grappleRetractionSpeed = 20f; // Retraction speed
     [SerializeField] private float grappleMaxLength = 8f; // Perhaps adjust this by set factor for Quick Pull
     private float grappleMinLength = 0f;
     [SerializeField] private float grappleAdjustSpeed = 7f;
@@ -46,6 +48,7 @@ public class HeadControl : MonoBehaviour
     [SerializeField] private float initialWobbleFrequency = 20f;
     [SerializeField] private float wobbleDecayDuration = 0.5f;
 
+
     private float wobbleElapsed = 0f;
     private bool isWobbling = false;
 
@@ -53,7 +56,7 @@ public class HeadControl : MonoBehaviour
     //// Quick pull
     [SerializeField] private float quickPullSpeed = 10f;
     [SerializeField] private float quickPullExtendSpeed = 30f;
-    
+
     private bool isQuickPulling = false;
     private bool quickPullActive = false; // Only when joint is connected during quick pull
     private Vector2 quickPullTarget;
@@ -68,12 +71,12 @@ public class HeadControl : MonoBehaviour
     [SerializeField] private float quickPullDuration = 0.6f;
     [SerializeField] private AnimationCurve quickPullSpeedCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     private float quickPullElapsed = 0f;
-    
+
 
     [Header("Jump settings")]
     //// Jump
     [SerializeField] private float jumpForce = 10f;
-    
+
 
     void Awake()
     {
@@ -92,22 +95,25 @@ public class HeadControl : MonoBehaviour
             StartStandardGrapple();
 
         if (Input.GetMouseButtonUp(0))
-            CancelGrapple();
+            StartRetraction();
 
         if (Input.GetMouseButtonDown(1))
             StartQuickPull();
 
         if (Input.GetMouseButtonUp(1))
-            CancelGrapple();
+            StartRetraction();
 
         if (Input.GetKeyDown(KeyCode.Space))
-                PerformJump();
+            PerformJump();
     }
 
     void FixedUpdate()
     {
         if (isFiringGrapple && !grappleHit)
             AnimateGrappleExtension();
+
+        if (isRetractingGrapple)
+            AnimateGrappleRetraction();
 
         UpdateLineRenderer();
         HandleGrappleAdjust();
@@ -222,7 +228,7 @@ public class HeadControl : MonoBehaviour
             var anchorRb = currentAnchorInstance.GetComponent<Rigidbody2D>();
 
             // Delay setting the connectedBody by one FixedUpdate
-            StartCoroutine(EnableGrappleNextPhysicsFrame(anchorRb, hit.point));            
+            StartCoroutine(EnableGrappleNextPhysicsFrame(anchorRb, hit.point));
 
             if (isQuickPulling)
             {
@@ -232,9 +238,32 @@ public class HeadControl : MonoBehaviour
         }
     }
 
+    private void AnimateGrappleRetraction()
+    {
+        float retractSpeed = grappleRetractionSpeed;
+        grappleCurrentLength -= retractSpeed * Time.fixedDeltaTime;
+
+        if (grappleCurrentLength <= 0f)
+        {
+            // Set to 0 to prevent negative length
+            grappleCurrentLength = 0f;
+
+            CancelGrapple();
+            return;
+        }
+
+        grappleEnd = (Vector2)rb.position + grappleDirection * grappleCurrentLength;
+    }
+
     // Not private in case want environment or something to cancel grapple.
     public void CancelGrapple()
     {
+
+        if (grappleLine.enabled && !isRetractingGrapple)
+        {
+            isRetractingGrapple = true;
+            return; // Delay reset until retraction finishes.
+        }
         // Capture the current momentum
         cachedMomentum = rb.velocity;
         momentumFramesRemaining = momentumCarryFrames;
@@ -254,7 +283,8 @@ public class HeadControl : MonoBehaviour
         isFiringGrapple = false;
         isQuickPulling = false;
         quickPullActive = false;
-        _isGrappled = false; 
+        _isGrappled = false;
+        isRetractingGrapple = false;
 
         // Switch back to default material
         shellCollider.sharedMaterial = defaultMaterial;
@@ -268,7 +298,7 @@ public class HeadControl : MonoBehaviour
         grappleJoint.connectedBody = anchorRb;
         grappleJoint.autoConfigureConnectedAnchor = false;
         grappleJoint.distance = Vector2.Distance(rb.position, hitPoint);
-        grappleJoint.enabled = true;        
+        grappleJoint.enabled = true;
         grappleLine.SetPosition(1, hitPoint);
         _isGrappled = true;
 
@@ -281,7 +311,7 @@ public class HeadControl : MonoBehaviour
 
         if (isQuickPulling)
             quickPullActive = true; // Trigger quick pull physics
-    }    
+    }
 
     private void UpdateLineRenderer()
     {
@@ -303,21 +333,27 @@ public class HeadControl : MonoBehaviour
             float t = i / (float)(segments - 1);
             Vector3 point = Vector3.Lerp(startPoint, endPoint, t);
 
-            // Add sinusoidal wobble perpendicular to rope
-            float wobbleAmplitude = isWobbling
-                ? Mathf.Lerp(initialWobbleAmplitude, 0f, wobbleElapsed / wobbleDecayDuration)
-                : 0f;
-
-            float wobbleFrequency = isWobbling
-                ? Mathf.Lerp(initialWobbleFrequency, 0f, wobbleElapsed / wobbleDecayDuration)
-                : 0f;
-
-            float wave = Mathf.Sin(Time.time * wobbleFrequency + t * wobbleFrequency) * wobbleAmplitude;
-
             // Direction perpendicular to grapple vector
-            Vector3 perpendicular = Vector3.Cross(direction, Vector3.forward).normalized; 
-            point += perpendicular * wave;
+            Vector3 perpendicular = Vector3.Cross(direction, Vector3.forward).normalized;
 
+            float wave = 0f;
+
+            if (isFiringGrapple || isRetractingGrapple)
+            {
+                // Constant wobble during extension
+                float baseAmplitude = 0.075f;
+                float baseFrequency = 10f;
+                wave = Mathf.Sin(Time.time * baseFrequency + t * baseFrequency) * baseAmplitude; // Add sinusoidal wobble perpendicular to rope
+
+            }
+            else if (isWobbling)
+            {
+                float wobbleAmplitude = Mathf.Lerp(initialWobbleAmplitude, 0f, wobbleElapsed / wobbleDecayDuration);
+                float wobbleFrequency = Mathf.Lerp(initialWobbleFrequency, 0f, wobbleElapsed / wobbleDecayDuration);
+                wave = Mathf.Sin(Time.time * wobbleFrequency + t * wobbleFrequency) * wobbleAmplitude;
+            }
+
+            point += perpendicular * wave;
             grappleLine.SetPosition(i, point);
         }
     }
@@ -327,7 +363,7 @@ public class HeadControl : MonoBehaviour
         SetupGrappleDirection();
         StartLineAnimation();
     }
-    
+
     private void HandleGrappleAdjust()
     // Adjust grapple length with keys
     {
@@ -375,6 +411,33 @@ public class HeadControl : MonoBehaviour
             Destroy(currentAnchorInstance);
         // Create a new anchor at the target
         currentAnchorInstance = Instantiate(grappleAnchorPrefab, target, Quaternion.identity);
+    }
+
+    private void StartRetraction()
+    {
+        if (!grappleLine.enabled || isRetractingGrapple)
+            return;
+
+        isRetractingGrapple = true;
+        isFiringGrapple = false;
+        grappleHit = false;
+        _isGrappled = false;
+
+        // Disable joint if connected
+        if (grappleJoint.enabled)
+        {
+            grappleJoint.enabled = false;
+            grappleJoint.connectedBody = null;
+        }
+
+        if (currentAnchorInstance != null)
+        {
+            Destroy(currentAnchorInstance);
+            currentAnchorInstance = null;
+        }
+
+        // Revert shell material just in case
+        shellCollider.sharedMaterial = defaultMaterial;
     }
 
 }
