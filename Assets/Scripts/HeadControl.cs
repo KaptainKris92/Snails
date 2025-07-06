@@ -29,12 +29,7 @@ public class HeadControl : MonoBehaviour
 
     private bool _isGrappled = false;
     public bool isGrappled => _isGrappled;
-    // public bool isGrappled =>
-    //     grappleJoint.enabled &&
-    //     grappleJoint.connectedBody != null &&
-    //     currentAnchorInstance != null &&
-    //     grappleHit;
-
+    
     private float grappleCurrentLength = 0f;
     private Vector2 grappleDirection;
     private Vector2 grappleEnd;
@@ -44,6 +39,15 @@ public class HeadControl : MonoBehaviour
     [SerializeField] private float grappleMaxLength = 8f; // Perhaps adjust this by set factor for Quick Pull
     private float grappleMinLength = 0f;
     [SerializeField] private float grappleAdjustSpeed = 7f;
+
+    [Header("Grapple wiggle settings")]
+    // Settings controlling how the grapple behaves when it first attaches
+    [SerializeField] private float initialWobbleAmplitude = 0.15f;
+    [SerializeField] private float initialWobbleFrequency = 20f;
+    [SerializeField] private float wobbleDecayDuration = 0.5f;
+
+    private float wobbleElapsed = 0f;
+    private bool isWobbling = false;
 
     [Header("Quick pull settings")]
     //// Quick pull
@@ -109,11 +113,18 @@ public class HeadControl : MonoBehaviour
         HandleGrappleAdjust();
         HandleQuickPull();
 
-        // Adds decaying force in cached direction when quick pull is released.
+        // Adds decaying force in cached direction when quick pull is released. // CHECK IF ACTUALLY BEING USED
         if (momentumFramesRemaining > 0)
         {
             rb.AddForce(cachedMomentum * (Mathf.Pow(momentumDecay, momentumCarryFrames - momentumFramesRemaining)), ForceMode2D.Force);
             momentumFramesRemaining--;
+        }
+
+        if (isWobbling)
+        {
+            wobbleElapsed += Time.fixedDeltaTime;
+            if (wobbleElapsed >= wobbleDecayDuration)
+                isWobbling = false;
         }
     }
 
@@ -261,6 +272,10 @@ public class HeadControl : MonoBehaviour
         grappleLine.SetPosition(1, hitPoint);
         _isGrappled = true;
 
+        // Start dynamic rope wobble
+        isWobbling = true;
+        wobbleElapsed = 0f;
+
         // Change shell material to make more bouncy when attached
         shellCollider.sharedMaterial = grappledMaterial;
 
@@ -289,9 +304,18 @@ public class HeadControl : MonoBehaviour
             Vector3 point = Vector3.Lerp(startPoint, endPoint, t);
 
             // Add sinusoidal wobble perpendicular to rope
-            float wobbleAmplitude = 0.05f;
-            float wave = Mathf.Sin(Time.time * 10f + t * 10f) * wobbleAmplitude;
-            Vector3 perpendicular = Vector3.Cross(direction, Vector3.forward).normalized; // 2D perpendicular
+            float wobbleAmplitude = isWobbling
+                ? Mathf.Lerp(initialWobbleAmplitude, 0f, wobbleElapsed / wobbleDecayDuration)
+                : 0f;
+
+            float wobbleFrequency = isWobbling
+                ? Mathf.Lerp(initialWobbleFrequency, 0f, wobbleElapsed / wobbleDecayDuration)
+                : 0f;
+
+            float wave = Mathf.Sin(Time.time * wobbleFrequency + t * wobbleFrequency) * wobbleAmplitude;
+
+            // Direction perpendicular to grapple vector
+            Vector3 perpendicular = Vector3.Cross(direction, Vector3.forward).normalized; 
             point += perpendicular * wave;
 
             grappleLine.SetPosition(i, point);
