@@ -211,10 +211,7 @@ public class HeadControl : MonoBehaviour
             var anchorRb = currentAnchorInstance.GetComponent<Rigidbody2D>();
 
             // Delay setting the connectedBody by one FixedUpdate
-            StartCoroutine(EnableGrappleNextPhysicsFrame(anchorRb, hit.point));
-
-            // Change shell material to make more bouncy when attached
-            shellCollider.sharedMaterial = grappledMaterial;
+            StartCoroutine(EnableGrappleNextPhysicsFrame(anchorRb, hit.point));            
 
             if (isQuickPulling)
             {
@@ -263,6 +260,9 @@ public class HeadControl : MonoBehaviour
         grappleJoint.enabled = true;        
         grappleLine.SetPosition(1, hitPoint);
         _isGrappled = true;
+
+        // Change shell material to make more bouncy when attached
+        shellCollider.sharedMaterial = grappledMaterial;
 
         if (isQuickPulling)
             quickPullActive = true; // Trigger quick pull physics
