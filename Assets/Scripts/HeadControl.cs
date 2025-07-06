@@ -74,7 +74,14 @@ public class HeadControl : MonoBehaviour
 
     [Header("Jump settings")]
     //// Jump
-    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private float jumpExtendSpeed = 30f;
+    [SerializeField] private float jumpMaxLength = 10f;
+    [SerializeField] private float jumpDuration = 0.6f;
+    [SerializeField] private AnimationCurve jumpPushCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    private bool isJumping = false;
+    private float jumpElapsed = 0f;
+    private bool jumpActive = false;
+
 
     [Header("Gravity settings")]
     private float baseGravityScale = 1.0f;
@@ -108,8 +115,11 @@ public class HeadControl : MonoBehaviour
         if (Input.GetMouseButtonUp(1))
             StartRetraction();
 
-        if (Input.GetKeyDown(KeyCode.Space))
-            PerformJump();
+        if (Input.GetKeyDown(KeyCode.Space) && !isJumping)
+            StartJump();
+
+        if (Input.GetKeyUp(KeyCode.Space))
+            StartRetraction();
     }
 
     void FixedUpdate()
@@ -124,7 +134,8 @@ public class HeadControl : MonoBehaviour
 
         UpdateLineRenderer();
         HandleGrappleAdjust();
-        HandleQuickPull();    
+        HandleQuickPull();
+        HandleJumpPush();
 
         if (isWobbling)
         {
@@ -149,11 +160,11 @@ public class HeadControl : MonoBehaviour
         PerformQuickPull();
     }
 
-    private void PerformJump()
+    private void StartJump()
     {
+        isJumping = true;
         SetupGrappleDirection();
         StartLineAnimation();
-        rb.AddForce(-grappleDirection * jumpForce, ForceMode2D.Impulse);
     }
 
     // ----------------------- Helpers -------------------------
@@ -218,7 +229,6 @@ public class HeadControl : MonoBehaviour
 
         if (hit.collider != null)
         {
-            // Debug.Log("Grappled to: " + hit.collider.name);
             grappleHit = true;
             isFiringGrapple = false;
 
@@ -234,6 +244,13 @@ public class HeadControl : MonoBehaviour
             {
                 quickPullElapsed = 0f;
                 lastDistanceToAnchor = Vector2.Distance(rb.position, hit.point);
+            }
+
+            if (isJumping)
+            {
+                jumpElapsed = 0f;
+                lastDistanceToAnchor = Vector2.Distance(rb.position, hit.point);
+                jumpActive = true;
             }
         }
     }
@@ -402,10 +419,6 @@ public class HeadControl : MonoBehaviour
         
         float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
 
-        // ✅ DEBUG radial speed while pulling        
-        float radialSpeed = (lastDistanceToAnchor - currentDistanceToAnchor) / Time.fixedDeltaTime;
-        Debug.Log($"[QuickPull] Radial Speed: {radialSpeed:F2}");
-
         // Elapsed time only increased if player actively moving closer to point
         if (quickPullElapsed < quickPullGraceTime || currentDistanceToAnchor < lastDistanceToAnchor - quickPullStuckTolerance) // 0.01f is tolerance
         {
@@ -419,11 +432,37 @@ public class HeadControl : MonoBehaviour
         float dynamicSpeed = quickPullSpeed * speedMultiplier; // Map curve output to speed value
 
         grappleJoint.distance = Mathf.Max(grappleMinLength, grappleJoint.distance - dynamicSpeed * Time.fixedDeltaTime);
-
-
-        // grappleJoint.distance = Mathf.Min(grappleMaxLength, grappleJoint.distance - quickPullSpeed * Time.fixedDeltaTime);
-
     }
+
+    private void HandleJumpPush()
+    {
+        if (!jumpActive || !grappleJoint.enabled || !grappleHit || currentAnchorInstance == null)
+            return;
+
+        float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
+
+        float radialSpeed = (currentDistanceToAnchor - lastDistanceToAnchor) / Time.fixedDeltaTime;
+        Debug.Log($"[Jump] Radial Speed: {radialSpeed:F2}");
+
+        // If we’re not at full length and still holding jump, push outward
+        if (currentDistanceToAnchor < jumpMaxLength && Input.GetKey(KeyCode.Space))
+        {
+            jumpElapsed += Time.fixedDeltaTime;
+
+            float t = Mathf.Clamp01(jumpElapsed / jumpDuration);
+            float speedMultiplier = jumpPushCurve.Evaluate(t);
+            float dynamicSpeed = quickPullSpeed * speedMultiplier;
+
+            grappleJoint.distance = Mathf.Min(jumpMaxLength, grappleJoint.distance + dynamicSpeed * Time.fixedDeltaTime);
+            lastDistanceToAnchor = currentDistanceToAnchor;
+        }
+        else
+        {
+            // Otherwise retract
+            StartRetraction();
+        }
+    }
+
 
     private void RemakeAnchor(Vector2 target)
     {
@@ -436,9 +475,7 @@ public class HeadControl : MonoBehaviour
 
     private void StartRetraction()
     {
-        Debug.Log($"StartRetraction() called");
-        Debug.Log($"StartRetraction: quickPullActive={quickPullActive}, anchor exists={currentAnchorInstance != null}");
-
+        
         if (!grappleLine.enabled || isRetractingGrapple)
             return;
 
@@ -454,8 +491,6 @@ public class HeadControl : MonoBehaviour
             float radialSpeed = (lastDistanceToAnchor - currentDistanceToAnchor) / Time.fixedDeltaTime;
 
             // If moving towards the anchor, inject a bit of impulse in that direction
-            Debug.Log($"RadialSpeed = {radialSpeed}");
-
             if (radialSpeed > 0f)
             {
                 Vector2 impulse = toAnchor * radialSpeed * pullBoostFactor;
@@ -474,6 +509,9 @@ public class HeadControl : MonoBehaviour
         isFiringGrapple = false;
         grappleHit = false;
         _isGrappled = false;
+        // Maybe move jumping bools to start.
+        isJumping = false;
+        jumpActive = false;
 
         // Disable joint if connected
         if (grappleJoint.enabled)
