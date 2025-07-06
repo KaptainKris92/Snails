@@ -6811,7 +6811,7 @@ MonoBehaviour:
   segments: 20
   grappleSpeed: 20
   grappleRetractionSpeed: 50
-  grappleMaxLength: 15
+  grappleMaxLength: 8
   grappleAdjustSpeed: 5.5
   initialWobbleAmplitude: 0.05
   initialWobbleFrequency: 1
@@ -6846,7 +6846,33 @@ MonoBehaviour:
   quickPullGraceTime: 0.15
   quickPullStuckTolerance: 0.01
   pullBoostFactor: 0.1
-  jumpForce: 10
+  jumpExtendSpeed: 30
+  jumpMaxLength: 10
+  jumpDuration: 0.6
+  jumpPushCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   minUpwardGravityScale: 1
   upwardVelocitySmoothing: 10
 --- !u!120 &1035784546

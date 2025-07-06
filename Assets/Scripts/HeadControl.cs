@@ -484,7 +484,7 @@ public class HeadControl : MonoBehaviour
         {
 
             Vector2 anchorPos = currentAnchorInstance.transform.position;
-            Vector2 toAnchor = (anchorPos - rb.position).normalized;
+            Vector2 toAnchor = (anchorPos - rb.position).normalized;            
 
             // Project velocity toward anchor
             float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
@@ -494,14 +494,35 @@ public class HeadControl : MonoBehaviour
             if (radialSpeed > 0f)
             {
                 Vector2 impulse = toAnchor * radialSpeed * pullBoostFactor;
-
                 rb.AddForce(impulse, ForceMode2D.Impulse);
-                Debug.Log($"Impulse of {impulse} has been added.");
-                Debug.DrawLine(rb.position, rb.position + impulse, Color.red, 2f);
+                Debug.Log($"[QuickPullRelease] Impulse of {impulse} has been added.");
             }
             else
             {
                 Debug.Log("[QuickPullRelease] Radial speed too low to apply impulse.");
+            }
+        }
+
+        if (jumpActive && currentAnchorInstance != null)
+        {
+
+            Vector2 anchorPos = currentAnchorInstance.transform.position;
+            Vector2 awayFromAnchor = (rb.position - anchorPos).normalized;            
+
+            // Project velocity toward anchor
+            float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
+            float radialSpeed = (currentDistanceToAnchor - lastDistanceToAnchor) / Time.fixedDeltaTime;
+
+            // If moving towards the anchor, inject a bit of impulse in that direction
+            if (radialSpeed > 0f)
+            {
+                Vector2 impulse = awayFromAnchor * radialSpeed * pullBoostFactor; // Maybe create jumpBoostFactor if having separate factors feels better.
+                rb.AddForce(impulse, ForceMode2D.Impulse);
+                Debug.Log($"[JumpRelease] Impulse of {impulse} has been added.");
+            }
+            else
+            {
+                Debug.Log("[JumpRelease] Radial speed too low to apply impulse.");
             }
         }
 
