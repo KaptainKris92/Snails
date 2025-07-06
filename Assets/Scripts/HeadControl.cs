@@ -440,9 +440,6 @@ public class HeadControl : MonoBehaviour
 
         float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
 
-        float radialSpeed = (currentDistanceToAnchor - lastDistanceToAnchor) / Time.fixedDeltaTime;
-        Debug.Log($"[Jump] Radial Speed: {radialSpeed:F2}");
-
         // If we’re not at full length and still holding jump, push outward
         if (currentDistanceToAnchor < jumpMaxLength && Input.GetKey(KeyCode.Space))
         {
@@ -494,7 +491,6 @@ public class HeadControl : MonoBehaviour
             {
                 Vector2 impulse = toAnchor * radialSpeed * pullBoostFactor;
                 rb.AddForce(impulse, ForceMode2D.Impulse);
-                Debug.Log($"[QuickPullRelease] Impulse of {impulse} has been added.");
             }
             else
             {
@@ -517,7 +513,6 @@ public class HeadControl : MonoBehaviour
             {
                 Vector2 impulse = awayFromAnchor * radialSpeed * pullBoostFactor; // Maybe create jumpBoostFactor if having separate factors feels better.
                 rb.AddForce(impulse, ForceMode2D.Impulse);
-                Debug.Log($"[JumpRelease] Impulse of {impulse} has been added.");
             }
             else
             {

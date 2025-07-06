@@ -4618,6 +4618,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: EndZone
       objectReference: {fileID: 0}
+    - target: {fileID: 6968107321877951004, guid: 265419b4eef476149af0b46799594a20, type: 3}
+      propertyPath: finishPanel
+      value: 
+      objectReference: {fileID: 166811146}
+    - target: {fileID: 6968107321877951004, guid: 265419b4eef476149af0b46799594a20, type: 3}
+      propertyPath: finalTimeText
+      value: 
+      objectReference: {fileID: 766569915}
     - target: {fileID: 8647411349543136265, guid: 265419b4eef476149af0b46799594a20, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.5
@@ -8156,6 +8164,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: EndZone
       objectReference: {fileID: 0}
+    - target: {fileID: 6968107321877951004, guid: 265419b4eef476149af0b46799594a20, type: 3}
+      propertyPath: finishPanel
+      value: 
+      objectReference: {fileID: 166811146}
+    - target: {fileID: 6968107321877951004, guid: 265419b4eef476149af0b46799594a20, type: 3}
+      propertyPath: finalTimeText
+      value: 
+      objectReference: {fileID: 766569915}
     - target: {fileID: 8647411349543136265, guid: 265419b4eef476149af0b46799594a20, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.5

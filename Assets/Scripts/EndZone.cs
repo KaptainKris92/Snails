@@ -13,7 +13,9 @@ public class EndZone : MonoBehaviour
     {
         // Objects must have exact same names in Scene.
         if (finishPanel == null)
-            finishPanel = GameObject.Find("FinishPanel"); 
+            finishPanel = GameObject.Find("FinishPanel");
+
+            finishPanel.SetActive(false);
 
         if (finalTimeText == null)
             finalTimeText = GameObject.Find("FinalTimeText").GetComponent<TextMeshProUGUI>(); 
