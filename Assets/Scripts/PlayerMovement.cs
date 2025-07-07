@@ -67,10 +67,12 @@ public class PlayerMovement : MonoBehaviour
     public void ResetPlayer()
     {
         DisableFinishPanel();
+        EndZone.ResetLevelFlag();
         
         if (headControl != null)
             headControl.CancelGrapple();
 
+        rb.bodyType = RigidbodyType2D.Dynamic; // Restore forces on rigidbody.
         rb.velocity = Vector2.zero;
         rb.angularVelocity = 0f;
         transform.position = spawnPoint;
