@@ -87,30 +87,27 @@ public class LeaderboardManager : MonoBehaviour
         }
 
         playerScore = time;
-        StartCoroutine(CheckIfTop10(playerScore));
+        StartCoroutine(CheckIfTop10AndSubmit(playerScore));
     }
 
-    private IEnumerator CheckIfTop10(float score)
+    private IEnumerator CheckIfTop10AndSubmit(float score)
     {
         UnityWebRequest www = UnityWebRequest.Get($"{baseUrl}/top_scores");
         yield return www.SendWebRequest();
 
-        if (www.result != UnityWebRequest.Result.Success)
+        bool isTop10 = false;
+
+        if (www.result == UnityWebRequest.Result.Success)
         {
-            Debug.LogError("Failed to get top scores: " + www.error);
-            yield break;
+            List<ScoreEntry> topScores = JsonUtilityWrapper.FromJsonList(www.downloadHandler.text);
+            isTop10 = topScores.Count < 10 || score < topScores.Max(e => e.score);
         }
 
-        List<ScoreEntry> topScores = JsonUtilityWrapper.FromJsonList(www.downloadHandler.text);
-        bool isTop10 = topScores.Count < 10 || score < topScores.Max(e => e.score);
+        // Submit the score regardless
+        yield return StartCoroutine(SubmitScore(playerName, score));
 
-        if (isTop10)
-        {
-            StartCoroutine(SubmitScore(playerName, score));
-        }
-
-        // Always show updated leaderboard
-        StartCoroutine(GetTopScores());
+        // Now re-fetch top scores and display with message
+        StartCoroutine(GetTopScores(score, isTop10));
     }
 
     private IEnumerator SubmitScore(string name, float score)
@@ -136,7 +133,7 @@ public class LeaderboardManager : MonoBehaviour
         }
     }
 
-    private IEnumerator GetTopScores()
+    private IEnumerator GetTopScores(float playerScore, bool isTop10)
     {
         UnityWebRequest www = UnityWebRequest.Get($"{baseUrl}/top_scores");
         yield return www.SendWebRequest();
@@ -148,20 +145,37 @@ public class LeaderboardManager : MonoBehaviour
         }
 
         List<ScoreEntry> entries = JsonUtilityWrapper.FromJsonList(www.downloadHandler.text);
-        DisplayLeaderboard(entries);
+        DisplayLeaderboard(entries, playerScore, isTop10);
     }
 
-    private void DisplayLeaderboard(List<ScoreEntry> entries)
+
+    private void DisplayLeaderboard(List<ScoreEntry> entries, float playerTime, bool isTop10)
     {
         leaderboardPanel.SetActive(true);
-        leaderboardText.text = "Top 10 Times:\n";
+
+        string header = $"Your time: {playerTime:F2}s\n";
+        if (isTop10)
+            header += "<color=green>🎉 You reached the top 10!</color>\n";
+        else
+            header += "<color=yellow>Try again to reach the leaderboard!</color>\n";
+
+        leaderboardText.text = header + "\nTop 10 Times:\n";
 
         int rank = 1;
         foreach (var entry in entries.OrderBy(e => e.score))
         {
-            leaderboardText.text += $"{rank++}. {entry.player_name} - {entry.score:F2}s\n";
+            if (System.DateTime.TryParse(entry.created_at, out var utcTime))
+            {
+                var ukTime = utcTime.AddHours(1);
+                leaderboardText.text += $"{rank++}. {entry.player_name} - {entry.score:F2}s  ({ukTime:yyyy-MM-dd HH:mm})\n";
+            }
+            else
+            {
+                leaderboardText.text += $"{rank++}. {entry.player_name} - {entry.score:F2}s  ({entry.created_at})\n";
+            }
         }
     }
+
 
     public void GetTopScoresAsString(System.Action<string> onResult)
     {
@@ -197,6 +211,7 @@ public class LeaderboardManager : MonoBehaviour
     {
         public string player_name;
         public float score;
+        public string created_at;
     }
 
     public static class JsonUtilityWrapper

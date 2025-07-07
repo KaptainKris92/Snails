@@ -39,12 +39,16 @@ def submit_score():
 def top_scores():
     conn = get_db_connection()
     rows = conn.execute(
-        "SELECT player_name, score FROM leaderboard ORDER BY score ASC LIMIT 10"
+        "SELECT player_name, score, created_at FROM leaderboard ORDER BY score ASC LIMIT 10"
     ).fetchall()
     conn.close()
     
     # Convert rows to dicts
-    scores = [{'player_name': row['player_name'], 'score': row['score']} for row in rows]
+    scores = [
+        {'player_name': row['player_name'], 
+         'score': row['score'],
+         'created_at': row['created_at']} 
+              for row in rows]
     return jsonify(scores)
 
 @app.route("/status", methods=["GET"])
