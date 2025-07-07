@@ -38,6 +38,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (LeaderboardManager.InputBlocked) return;
         float horizontal = Input.GetAxis("Horizontal");
 
         float moveForce = headControl != null && headControl.isGrappled

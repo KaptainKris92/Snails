@@ -27,7 +27,7 @@ public class EndZone : MonoBehaviour
             return;
 
         if (other.CompareTag("Player"))
-        {            
+        {
             levelCompleted = true; // This should only get triggered once.
 
             // Stop player gaining momentum in final panel.
@@ -37,24 +37,28 @@ public class EndZone : MonoBehaviour
                 rb.velocity = Vector2.zero;
                 rb.angularVelocity = 0f;
                 rb.bodyType = RigidbodyType2D.Static; // Prevents all movements and forces
-                
+
             }
 
             TimerManager.instance.RecordTime();
-            List<float> times = TimerManager.instance.GetTimes();
-            string leaderboard = "Past 5 times:\n";
-
-            for (int i = 0; i < times.Count; i++)
-            {
-                leaderboard += $"{i + 1}. {times[i]:F2}s\n";
-            }
 
             TimerManager.instance.StopTimer();
             float finalTime = TimerManager.instance.GetTime();
-            finalTimeText.text = $"Final time: {finalTime:F2}s\n\n{leaderboard}\nPress R to Restart";
 
+            LeaderboardManager.Instance.TrySubmitScore(finalTime);
             finishPanel.SetActive(true);
             Time.timeScale = 0f; //Pause the game            
+
+            // Unlock and show (if hidden) the cursor
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            
+            // Fetch and show leaderboard
+            finalTimeText.text = $"Final time: {finalTime:F2}s\n\nLoading leaderboard...";
+            LeaderboardManager.Instance.GetTopScoresAsString((string leaderboard) =>
+            {
+                finalTimeText.text = $"Final time: {finalTime:F2}s\n\n{leaderboard}\nPress R to Restart";
+            });
         }
     }
 
@@ -62,4 +66,6 @@ public class EndZone : MonoBehaviour
     {
         levelCompleted = false;
     }
+
+    
 }
