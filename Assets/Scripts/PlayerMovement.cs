@@ -68,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
     public void ResetPlayer()
     {
         DisableFinishPanel();
+        Cursor.visible = false;
         EndZone.ResetLevelFlag();
         
         if (headControl != null)

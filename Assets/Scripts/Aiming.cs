@@ -23,10 +23,10 @@ public class Aiming : MonoBehaviour
         Vector3 toMouse = mouseWorld - shell.position;
 
         // Clamp distance to maxDistance
-        if (toMouse.magnitude > maxDistance)
-        {
-            toMouse = toMouse.normalized * maxDistance;
-        }
+        // if (toMouse.magnitude > maxDistance)
+        // {
+        //     toMouse = toMouse.normalized * maxDistance;
+        // }
 
         transform.position = shell.position + toMouse;
     }

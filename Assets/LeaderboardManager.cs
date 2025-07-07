@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 
 public class LeaderboardManager : MonoBehaviour
 {
-    public static LeaderboardManager Instance { get; private set;  }
+    public static LeaderboardManager Instance { get; private set; }
 
     [Header("Setup UI")]
     public GameObject setupPanel;
@@ -43,9 +43,20 @@ public class LeaderboardManager : MonoBehaviour
         statusText.text = "Checking leaderboard...";
     }
 
+    void Update()
+    {
+        // Keep cursor visible and unlocked while setup screen is active or game is paused
+        if (Time.timeScale == 0f || IsInputFieldFocused())
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
+
     public void OnPressGo()
     {
         Debug.Log("Button pressed!");
+        Cursor.visible = false;
         playerName = nameInputField.text.Trim();
         baseUrl = urlInputField.text.Trim().TrimEnd('/');
 
@@ -224,5 +235,11 @@ public class LeaderboardManager : MonoBehaviour
             string wrapped = "{\"list\":" + json + "}";
             return JsonUtility.FromJson<ScoreListWrapper>(wrapped).list;
         }
+    }
+
+    private bool IsInputFieldFocused()
+    {
+        var selected = EventSystem.current.currentSelectedGameObject;
+        return selected != null && selected.GetComponent<TMP_InputField>() != null;
     }
 }
