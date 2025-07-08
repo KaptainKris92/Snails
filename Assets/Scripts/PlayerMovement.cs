@@ -37,6 +37,20 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void Update()
+    {        
+        // Press 'R' to reset to spawn point
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            // If paused, unpause before reset
+            if (Time.timeScale == 0f)
+            {
+                Time.timeScale = 1f;
+            }
+            ResetPlayer();
+        }
+    }
+
+    void FixedUpdate()
     {
         if (LeaderboardManager.InputBlocked) return;
         float horizontal = Input.GetAxis("Horizontal");
@@ -52,17 +66,7 @@ public class PlayerMovement : MonoBehaviour
         // Apply left/right force and torque
         rb.AddForce(new Vector2(horizontal * moveForce, 0f));
         rb.AddTorque(-horizontal * torqueForce);
-
-        // Press 'R' to reset to spawn point
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            // If paused, unpause before reset
-            if (Time.timeScale == 0f)
-            {
-                Time.timeScale = 1f;
-            }
-            ResetPlayer();
-        }
+        
     }
 
     public void ResetPlayer()
@@ -70,7 +74,7 @@ public class PlayerMovement : MonoBehaviour
         DisableFinishPanel();
         Cursor.visible = false;
         EndZone.ResetLevelFlag();
-        
+
         if (headControl != null)
             headControl.CancelGrapple();
 
