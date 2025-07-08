@@ -37,7 +37,8 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void Update()
-    {        
+    {   
+        if (LeaderboardManager.InputBlocked) return;        
         // Press 'R' to reset to spawn point
         if (Input.GetKeyDown(KeyCode.R))
         {
