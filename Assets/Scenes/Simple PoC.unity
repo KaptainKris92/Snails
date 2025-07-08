@@ -7892,7 +7892,7 @@ MonoBehaviour:
   quickPullStuckTolerance: 0.01
   pullBoostFactor: 0.1
   jumpMaxLength: 10
-  jumpDuration: 0.6
+  jumpDuration: 0.2
   jumpPushCurve:
     serializedVersion: 2
     m_Curve:
