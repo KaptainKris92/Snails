@@ -162,7 +162,14 @@ public class LeaderboardManager : MonoBehaviour
 
     private void DisplayLeaderboard(List<ScoreEntry> entries, float playerTime, bool isTop10)
     {
-        leaderboardPanel.SetActive(true);
+        if (Time.timeScale == 0f) // Only show leaderboard if game is paused
+        {
+            leaderboardPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.Log("Skipped showing leaderboard because game isn't paused");
+        }
 
         string header = $"Your time: {playerTime:F2}s\n";
         if (isTop10)

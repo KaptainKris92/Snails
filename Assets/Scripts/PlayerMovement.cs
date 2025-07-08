@@ -47,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 Time.timeScale = 1f;
             }
+
             ResetPlayer();
         }
     }
@@ -77,7 +78,7 @@ public class PlayerMovement : MonoBehaviour
         EndZone.ResetLevelFlag();
 
         if (headControl != null)
-            headControl.CancelGrapple();
+            headControl.ResetState(); // Reset all booleans and timers.
 
         rb.bodyType = RigidbodyType2D.Dynamic; // Restore forces on rigidbody.
         rb.velocity = Vector2.zero;

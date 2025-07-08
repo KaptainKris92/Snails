@@ -16,6 +16,8 @@ public class HeadControl : MonoBehaviour
     [SerializeField] private PhysicsMaterial2D defaultMaterial;
     [SerializeField] private PhysicsMaterial2D grappledMaterial;
 
+    private bool inputLocked = false; // To prevent player from holding input & pressing reset to continue existing move
+
     [Header("Shell components")]
     // Shell components
     private Rigidbody2D rb; // The shell's rigidbody
@@ -102,6 +104,8 @@ public class HeadControl : MonoBehaviour
 
     void Update()
     {
+        if (inputLocked) return; // Don't count any of the key-presses if input is locked for 0.1s after reset.
+
         if (Input.GetMouseButtonDown(0) && !isFiringGrapple)
             StartStandardGrapple();
 
@@ -161,6 +165,7 @@ public class HeadControl : MonoBehaviour
 
     private void StartJump()
     {
+        if (inputLocked) return; // Just in case jump still persists while holding space + R (can remove later probably)
         isJumping = true;
         SetupGrappleDirection();
         StartLineAnimation();
@@ -279,7 +284,7 @@ public class HeadControl : MonoBehaviour
         {
             isRetractingGrapple = true;
             return; // Delay reset until retraction finishes.
-        }        
+        }
 
         // Disable the joint
         grappleJoint.enabled = false;
@@ -300,7 +305,7 @@ public class HeadControl : MonoBehaviour
         isRetractingGrapple = false;
 
         // Switch back to default material
-        shellCollider.sharedMaterial = defaultMaterial;        
+        shellCollider.sharedMaterial = defaultMaterial;
     }
 
     // Waits until next FixedUpdate (frame) before enabling lineRenderer to avoid flickering.
@@ -415,7 +420,7 @@ public class HeadControl : MonoBehaviour
         // Only if quick pulling and attached
         if (!quickPullActive || !grappleJoint.enabled || !grappleHit || currentAnchorInstance == null)
             return;
-        
+
         float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
 
         // Elapsed time only increased if player actively moving closer to point
@@ -471,7 +476,7 @@ public class HeadControl : MonoBehaviour
 
     private void StartRetraction()
     {
-        
+
         if (!grappleLine.enabled || isRetractingGrapple)
             return;
 
@@ -480,7 +485,7 @@ public class HeadControl : MonoBehaviour
         {
 
             Vector2 anchorPos = currentAnchorInstance.transform.position;
-            Vector2 toAnchor = (anchorPos - rb.position).normalized;            
+            Vector2 toAnchor = (anchorPos - rb.position).normalized;
 
             // Project velocity toward anchor
             float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
@@ -502,7 +507,7 @@ public class HeadControl : MonoBehaviour
         {
 
             Vector2 anchorPos = currentAnchorInstance.transform.position;
-            Vector2 awayFromAnchor = (rb.position - anchorPos).normalized;            
+            Vector2 awayFromAnchor = (rb.position - anchorPos).normalized;
 
             // Project velocity toward anchor
             float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
@@ -543,6 +548,57 @@ public class HeadControl : MonoBehaviour
 
         // Revert shell material just in case
         shellCollider.sharedMaterial = defaultMaterial;
+    }
+
+    public void ResetState()
+    {
+         // Fully cancel grapple and joint (instead of using CancelGrapple() because it reacts too slowly it seems)
+        if (grappleJoint != null)
+        {
+            grappleJoint.enabled = false;
+            grappleJoint.connectedBody = null;
+        }
+
+        if (currentAnchorInstance != null)
+        {
+            Destroy(currentAnchorInstance);
+            currentAnchorInstance = null;
+        }
+
+        // Cancel LineRenderer
+        if (grappleLine != null)
+        {
+            grappleLine.enabled = false;
+        }
+
+        // Reset all action flags
+        isFiringGrapple = false;
+        isRetractingGrapple = false;
+        grappleHit = false;
+        _isGrappled = false;
+        isQuickPulling = false;
+        quickPullActive = false;
+        isJumping = false;
+        jumpActive = false;
+
+        // Reset timers
+        quickPullElapsed = 0f;
+        jumpElapsed = 0f;
+        wobbleElapsed = 0f;
+        isWobbling = false;
+
+        // Reset material
+        if (shellCollider != null)
+            shellCollider.sharedMaterial = defaultMaterial;
+
+        inputLocked = true;
+        StartCoroutine(UnlockInputAfterDelay(0.1f)); // Unlock input after 0.5s
+    }
+
+    private IEnumerator UnlockInputAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        inputLocked = false;
     }
 
 }
