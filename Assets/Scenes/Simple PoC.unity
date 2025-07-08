@@ -4060,7 +4060,7 @@ GameObject:
   - component: {fileID: 587125627}
   - component: {fileID: 587125628}
   - component: {fileID: 587125629}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: AimingReticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4122,7 +4122,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 0.023584902, b: 0.10219342, a: 1}
   m_FlipX: 0
