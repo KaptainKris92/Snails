@@ -1,5 +1,6 @@
 using System.Security.Permissions;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
@@ -26,6 +27,10 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        if (SceneManager.GetActiveScene().name.Contains("Level")) // Or tag your scenes
+        {
+            LeaderboardManager.Instance?.AssignLevelUIReferences();
+        }
         spawnPoint = transform.position;
 
         if (TimerManager.instance != null)
@@ -38,6 +43,24 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (LeaderboardManager.InputBlocked) return;
+        // Press 'R' to reset to spawn point
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            // If paused, unpause before reset
+            if (Time.timeScale == 0f)
+            {
+                Time.timeScale = 1f;
+            }
+
+            ResetPlayer();
+        }
+
+    }
+
+    void FixedUpdate()
+    {
+        if (LeaderboardManager.InputBlocked) return;
         float horizontal = Input.GetAxis("Horizontal");
 
         float moveForce = headControl != null && headControl.isGrappled
@@ -51,26 +74,19 @@ public class PlayerMovement : MonoBehaviour
         // Apply left/right force and torque
         rb.AddForce(new Vector2(horizontal * moveForce, 0f));
         rb.AddTorque(-horizontal * torqueForce);
-
-        // Press 'R' to reset to spawn point
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            // If paused, unpause before reset
-            if (Time.timeScale == 0f)
-            {
-                Time.timeScale = 1f;
-            }
-            ResetPlayer();
-        }
+        
     }
 
     public void ResetPlayer()
     {
         DisableFinishPanel();
-        
-        if (headControl != null)
-            headControl.CancelGrapple();
+        Cursor.visible = false;
+        EndZone.ResetLevelFlag();
 
+        if (headControl != null)
+            headControl.ResetState(); // Reset all booleans and timers.
+
+        rb.bodyType = RigidbodyType2D.Dynamic; // Restore forces on rigidbody.
         rb.velocity = Vector2.zero;
         rb.angularVelocity = 0f;
         transform.position = spawnPoint;
