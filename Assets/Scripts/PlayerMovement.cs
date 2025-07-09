@@ -1,5 +1,6 @@
 using System.Security.Permissions;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
@@ -26,6 +27,10 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        if (SceneManager.GetActiveScene().name.Contains("Level")) // Or tag your scenes
+        {
+            LeaderboardManager.Instance?.AssignLevelUIReferences();
+        }
         spawnPoint = transform.position;
 
         if (TimerManager.instance != null)
@@ -37,8 +42,8 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void Update()
-    {   
-        if (LeaderboardManager.InputBlocked) return;        
+    {
+        if (LeaderboardManager.InputBlocked) return;
         // Press 'R' to reset to spawn point
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -50,6 +55,7 @@ public class PlayerMovement : MonoBehaviour
 
             ResetPlayer();
         }
+
     }
 
     void FixedUpdate()

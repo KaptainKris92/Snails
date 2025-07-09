@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,11 +11,11 @@ public class LeaderboardManager : MonoBehaviour
 {
     public static LeaderboardManager Instance { get; private set; }
 
-    [Header("Setup UI")]
+    [Header("Status Popup UI")]
+    public GameObject statusPopupPanel;
+    public TextMeshProUGUI statusPopupText;
+    public GameObject levelSelectPanel; // Shown after clicking OK
     public GameObject setupPanel;
-    public TMP_InputField nameInputField;
-    public TMP_InputField urlInputField;
-    public TextMeshProUGUI statusText;
 
     [Header("Leaderboard UI")]
     public GameObject leaderboardPanel;
@@ -25,9 +26,11 @@ public class LeaderboardManager : MonoBehaviour
     private float playerScore;
     private bool leaderboardOnline = false;
     public static bool InputBlocked = true;
+    private bool pendingStatusCheck = false;
 
     void Awake()
     {
+        SceneManager.sceneLoaded += OnSceneLoaded;
         // Singleton accessor
         if (Instance != null && Instance != this)
         {
@@ -35,12 +38,12 @@ public class LeaderboardManager : MonoBehaviour
             return;
         }
         Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     void Start()
-    {
-        Time.timeScale = 0f; // Pause the game until setup is complete
-        statusText.text = "Checking leaderboard...";
+    {                       
+        InputBlocked = false;
     }
 
     void Update()
@@ -53,39 +56,102 @@ public class LeaderboardManager : MonoBehaviour
         }
     }
 
-    public void OnPressGo()
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log("Button pressed!");
-        Cursor.visible = false;
-        playerName = nameInputField.text.Trim();
-        baseUrl = urlInputField.text.Trim().TrimEnd('/');
+        Debug.Log("Scene loaded: " + scene.name);
 
-        if (string.IsNullOrEmpty(playerName) || string.IsNullOrEmpty(baseUrl))
+        if (scene.name == "MainMenu")
         {
-            Debug.LogWarning("Both name and URL must be filled in.");
-            return;
+            AssignMainMenuUIReferences();             
+
+            if (GameSessionManager.Instance.SetupComplete)
+            {                
+                Debug.Log("Setup complete: hiding SetupPanel and showing LevelSelectPanel.");
+                setupPanel?.SetActive(false);
+                statusPopupPanel?.SetActive(false);
+                levelSelectPanel?.SetActive(true);  
+            }
+            else
+            {
+                Debug.Log("Setup NOT complete: showing SetupPanel.");
+                setupPanel?.SetActive(true);
+                levelSelectPanel?.SetActive(false);
+                statusPopupPanel?.SetActive(false);
+            }
+            
+            if (pendingStatusCheck)
+            {
+                Debug.Log("Running pending status check...");
+                pendingStatusCheck = false;
+                StartCoroutine(CheckLeaderboardStatus());                
+            }
         }
 
-        setupPanel.SetActive(false);
-        Time.timeScale = 1f; // Unpause game
-        StartCoroutine(CheckLeaderboardStatus());
-        InputBlocked = false;
+        if (scene.name.Contains("Level"))
+        {
+            Debug.Log("Scene name contains the word 'Level'. Assigning UI references");
+            AssignLevelUIReferences();
+        }
     }
 
-    private IEnumerator CheckLeaderboardStatus()
+    // UI Elements for Main Menu
+    private void AssignMainMenuUIReferences()
     {
+        setupPanel = FindInactiveGameObjectByName("SetupPanel");
+        levelSelectPanel = FindInactiveGameObjectByName("LevelSelectPanel");
+        statusPopupPanel = FindInactiveGameObjectByName("StatusPopupPanel");
+
+
+        if (statusPopupPanel != null)
+        {
+            statusPopupText = statusPopupPanel.GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+
+        Debug.Log($"AssignMainMenuUIReferences() called. Found statusPopupPanel? {statusPopupPanel != null}, statusPopupText? {statusPopupText != null}");
+    }
+
+    // UI Elements for Levels 
+    public void AssignLevelUIReferences()
+    {
+        leaderboardPanel = GameObject.Find("FinishPanel");
+        leaderboardText = GameObject.Find("FinalTimeText")?.GetComponent<TextMeshProUGUI>();
+
+        if (leaderboardPanel == null || leaderboardText == null)
+        {
+            Debug.LogWarning("Leaderboard UI references not found in scene.");
+        }
+        else
+        {
+            Debug.Log("Leaderboard UI references assigned.");
+        }
+    }
+
+
+    public IEnumerator CheckLeaderboardStatus()
+    {
+        if (string.IsNullOrEmpty(baseUrl))
+        {
+            Debug.LogError("baseUrl is null or empty before checking server status!");
+            statusPopupPanel.SetActive(true);
+            statusPopupText.text = "<color=red><b>No server URL set.</b></color>";
+            yield break;
+        }
+
+        Debug.Log("Checking leaderboard at: " + baseUrl + "/status");
         UnityWebRequest www = UnityWebRequest.Get($"{baseUrl}/status");
         yield return www.SendWebRequest();
+
+        statusPopupPanel.SetActive(true); // Show popup 
 
         if (www.result != UnityWebRequest.Result.Success)
         {
             leaderboardOnline = false;
-            statusText.text = "<color=yellow>⚠️ Leaderboard is down</color>";
+            statusPopupText.text = "<color=red>Could not find server.</color>";
         }
         else
         {
             leaderboardOnline = true;
-            statusText.text = "<color=green>✅ Leaderboard active</color>";
+            statusPopupText.text = "<color=green>Server found!</color>";
         }
     }
 
@@ -173,7 +239,7 @@ public class LeaderboardManager : MonoBehaviour
 
         string header = $"Your time: {playerTime:F2}s\n";
         if (isTop10)
-            header += "<color=green>🎉 You reached the top 10!</color>\n";
+            header += "<color=green>You reached the top 10!</color>\n";
         else
             header += "<color=yellow>Try again to reach the leaderboard!</color>\n";
 
@@ -192,6 +258,8 @@ public class LeaderboardManager : MonoBehaviour
                 leaderboardText.text += $"{rank++}. {entry.player_name} - {entry.score:F2}s  ({entry.created_at})\n";
             }
         }
+
+        leaderboardText.text += "\nPress R to Restart\nor\nEsc for Main Menu";
     }
 
 
@@ -207,7 +275,7 @@ public class LeaderboardManager : MonoBehaviour
 
         if (www.result != UnityWebRequest.Result.Success)
         {
-            callback?.Invoke("⚠️ Failed to load leaderboard.");
+            callback?.Invoke("Failed to load leaderboard.");
             yield break;
         }
 
@@ -248,5 +316,63 @@ public class LeaderboardManager : MonoBehaviour
     {
         var selected = EventSystem.current.currentSelectedGameObject;
         return selected != null && selected.GetComponent<TMP_InputField>() != null;
+    }
+
+    public void SetSessionValues()
+    {
+        playerName = GameSessionManager.Instance.PlayerName;
+        baseUrl = GameSessionManager.Instance.NgrokURL;
+        Debug.Log($"SetSessionValues: Name = {playerName}, baseUrl = {baseUrl}");
+    }
+
+    public void OnStatusPopupOK()
+    {
+        statusPopupPanel.SetActive(false);
+        setupPanel.SetActive(false);
+        levelSelectPanel.SetActive(true);
+    }
+
+    public void StartStatusCheck()
+    {
+        SetSessionValues();
+        // pendingStatusCheck = true; // Mark that status check needs to be done, but don't run it yet to avoid timing mismatches.        
+
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            Debug.Log("StartStatusCheck(): Already in MainMenu, running immediately.");
+            AssignMainMenuUIReferences();
+
+            if (statusPopupPanel == null || statusPopupText == null)
+            {
+                Debug.LogError("UI references not assigned before CheckLeaderboardStatus!");
+                return;
+            }
+
+            Debug.Log("StartStatusCheck(): Already in MainMenu, running immediately.");
+
+            // pendingStatusCheck = false;
+            StartCoroutine(CheckLeaderboardStatus());
+        }
+        else
+        {
+            Debug.Log("StartStatusCheck(): Scene not MainMenu, delaying until loaded.");
+            pendingStatusCheck = true;
+        }
+    }
+
+    private GameObject FindInactiveGameObjectByName(string name)
+    {
+        Transform[] allTransforms = Resources.FindObjectsOfTypeAll<Transform>();
+        foreach (var t in allTransforms)
+        {
+            if (t.name == name && t.hideFlags == HideFlags.None)
+                return t.gameObject;
+        }
+        return null;
+    }
+
+    public void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 }

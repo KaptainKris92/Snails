@@ -12,6 +12,6 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 6fffe9860b42c1844b393239850da4ea
   - enabled: 1
-    path: Assets/Scenes/Simple PoC.unity
+    path: Assets/Scenes/OG Level.unity
     guid: 61fdc19c6c1e9b24e9e4d16392fd2af4
   m_configObjects: {}
