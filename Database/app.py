@@ -4,7 +4,6 @@ import sqlite3
 app = Flask(__name__)
 DATABASE = 'leaderboard.db'
 
-
 def get_db_connection():
     '''
     Helper to get database connection
@@ -18,16 +17,17 @@ def get_db_connection():
 def submit_score():
     data = request.get_json()
     
-    if not data or 'player_name' not in data or 'score' not in data:
-        return jsonify({'error': 'Missing player_name or score'}), 400
+    if not data or 'player_name' not in data or 'score' not in data or 'level_name' not in data:
+        return jsonify({'error': 'Missing player_name, score, or level_name'}), 400
     
     name = data['player_name']
     score = data['score']
+    level_name = data['level_name']
     
     conn = get_db_connection()
     conn.execute(
-        "INSERT INTO leaderboard (player_name, score) VALUES (?, ?)",
-        (name, score)
+        "INSERT INTO leaderboard (player_name, score, level_name) VALUES (?, ?, ?)",
+        (name, score, level_name)
     )
     conn.commit()
     conn.close
@@ -37,18 +37,26 @@ def submit_score():
 # GET /top_scores
 @app.route('/top_scores', methods = ['GET'])
 def top_scores():
+    level_name = request.args.get('level_name')
+    
     conn = get_db_connection()
-    rows = conn.execute(
-        "SELECT player_name, score, created_at FROM leaderboard ORDER BY score ASC LIMIT 10"
-    ).fetchall()
+    
+    if level_name:
+        query = "SELECT player_name, score, created_at FROM leaderboard WHERE level_name = ? ORDER BY score ASC LIMIT 10"
+        rows = conn.execute(query, (level_name,)).fetchall()
+    else:        
+        rows = conn.execute("SELECT player_name, score, created_at FROM leaderboard ORDER BY score ASC LIMIT 10").fetchall()
+    
     conn.close()
     
     # Convert rows to dicts
     scores = [
-        {'player_name': row['player_name'], 
-         'score': row['score'],
-         'created_at': row['created_at']} 
-              for row in rows]
+        {
+            'player_name': row['player_name'], 
+            'score': row['score'],
+            'created_at': row['created_at']
+            } 
+            for row in rows]
     return jsonify(scores)
 
 @app.route("/status", methods=["GET"])

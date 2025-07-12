@@ -169,7 +169,9 @@ public class LeaderboardManager : MonoBehaviour
 
     private IEnumerator CheckIfTop10AndSubmit(float score)
     {
-        UnityWebRequest www = UnityWebRequest.Get($"{baseUrl}/top_scores");
+
+        string levelName = SceneManager.GetActiveScene().name;
+        UnityWebRequest www = UnityWebRequest.Get($"{baseUrl}/top_scores?level_name = {UnityWebRequest.EscapeURL(levelName)}");
         yield return www.SendWebRequest();
 
         bool isTop10 = false;
@@ -189,7 +191,14 @@ public class LeaderboardManager : MonoBehaviour
 
     private IEnumerator SubmitScore(string name, float score)
     {
-        ScoreEntry entry = new ScoreEntry { player_name = name, score = score };
+        string levelName = SceneManager.GetActiveScene().name;
+        ScoreEntry entry = new ScoreEntry
+        {
+            player_name = name,
+            score = score,
+            level_name = levelName
+        };
+
         string json = JsonUtility.ToJson(entry);
 
         UnityWebRequest www = new UnityWebRequest($"{baseUrl}/submit_score", "POST");
@@ -212,7 +221,8 @@ public class LeaderboardManager : MonoBehaviour
 
     private IEnumerator GetTopScores(float playerScore, bool isTop10)
     {
-        UnityWebRequest www = UnityWebRequest.Get($"{baseUrl}/top_scores");
+        string levelName = SceneManager.GetActiveScene().name;
+        UnityWebRequest www = UnityWebRequest.Get($"{baseUrl}/top_scores?level_name={UnityWebRequest.EscapeURL(levelName)}");
         yield return www.SendWebRequest();
 
         if (www.result != UnityWebRequest.Result.Success)
@@ -297,6 +307,7 @@ public class LeaderboardManager : MonoBehaviour
     {
         public string player_name;
         public float score;
+        public string level_name;
         public string created_at;
     }
 

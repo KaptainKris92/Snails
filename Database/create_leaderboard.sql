@@ -2,5 +2,6 @@ CREATE TABLE IF NOT EXISTS leaderboard (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_name TEXT NOT NULL,
     score REAL NOT NULL,
+    level_name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
