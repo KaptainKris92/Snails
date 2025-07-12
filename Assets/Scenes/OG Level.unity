@@ -67133,7 +67133,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6491330544707652251, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
       propertyPath: chunkScaleFactor
-      value: 8
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6491330544707652251, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: momentumStrength
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6491330544707652251, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
       propertyPath: slicedSprites.Array.size
