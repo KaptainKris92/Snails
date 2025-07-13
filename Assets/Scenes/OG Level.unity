@@ -50117,6 +50117,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RedThorns
       objectReference: {fileID: 0}
+    - target: {fileID: 4005555462814377885, guid: da2739b7c97a2e64d8eab0dba172a391, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4746726860693044805, guid: da2739b7c97a2e64d8eab0dba172a391, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.5
@@ -66549,6 +66553,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RedThorns_HalfSize
       objectReference: {fileID: 0}
+    - target: {fileID: 2350063755384849482, guid: 7aa9aa8b2af64ed4d888f4770913ab68, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8902730285695239859, guid: 7aa9aa8b2af64ed4d888f4770913ab68, type: 3}
       propertyPath: m_LocalPosition.x
       value: -9
@@ -67118,6 +67126,54 @@ PrefabInstance:
     - target: {fileID: 2441390409888147544, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpSpeed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpDuration
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpMaxLength
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpBoostFactor
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpExtendSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpForceMultiplier
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpPushCurve.m_Curve.Array.data[1].time
+      value: 1.0215149
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpForceCurve.m_Curve.Array.data[0].time
+      value: -0.0041656494
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpPushCurve.m_Curve.Array.data[1].value
+      value: 0.9011154
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpForceCurve.m_Curve.Array.data[0].value
+      value: 0.59906006
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: quickPullSpeedCurve.m_Curve.Array.data[0].time
+      value: -0.0041656494
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: quickPullSpeedCurve.m_Curve.Array.data[0].value
+      value: 0.30085754
       objectReference: {fileID: 0}
     - target: {fileID: 6491330544707652251, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
       propertyPath: force

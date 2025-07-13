@@ -1,5 +1,4 @@
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class HeadControl : MonoBehaviour
@@ -78,7 +77,16 @@ public class HeadControl : MonoBehaviour
     //// Jump
     [SerializeField] private float jumpMaxLength = 10f;
     [SerializeField] private float jumpDuration = 0.6f;
-    [SerializeField] private AnimationCurve jumpPushCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField] private float jumpSpeed = 8f;
+    [SerializeField] private float jumpBoostFactor = 0.2f; // For adding 'push' momentum upon jump release
+    [SerializeField] private float jumpVerticalVelBoost = 1.05f; // Has to be over 1 otherwise slows down.
+    [SerializeField] private float jumpPostAttachExtendSpeed = 5f;
+
+    [SerializeField] private float jumpExtendSpeed = 5f; // Visual extension rate after hit
+    [SerializeField] private float jumpForceMultiplier = 12f; // Scales force applied away from anchor
+    [SerializeField] private AnimationCurve jumpForceCurve = AnimationCurve.EaseInOut(0, 0, 1, 1); // Controls ramp-up of jump force
+
+    private float jumpInitialDistance = 0f;
     private bool isJumping = false;
     private float jumpElapsed = 0f;
     private bool jumpActive = false;
@@ -255,6 +263,7 @@ public class HeadControl : MonoBehaviour
                 jumpElapsed = 0f;
                 lastDistanceToAnchor = Vector2.Distance(rb.position, hit.point);
                 jumpActive = true;
+                jumpInitialDistance = lastDistanceToAnchor;
             }
         }
     }
@@ -303,6 +312,10 @@ public class HeadControl : MonoBehaviour
         quickPullActive = false;
         _isGrappled = false;
         isRetractingGrapple = false;
+        isJumping = false;
+        jumpActive = false;
+        jumpElapsed = 0f;
+        jumpInitialDistance = 0f;
 
         // Switch back to default material
         shellCollider.sharedMaterial = defaultMaterial;
@@ -313,16 +326,22 @@ public class HeadControl : MonoBehaviour
     {
         yield return new WaitForFixedUpdate();
 
+        if (isJumping)
+            yield break; // Dont enable the joint during jumping.
+
+        // Enable DistanceJoint2D for normal grapple or quick pull
         grappleJoint.connectedBody = anchorRb;
         grappleJoint.autoConfigureConnectedAnchor = false;
         grappleJoint.distance = Vector2.Distance(rb.position, hitPoint);
-        grappleJoint.enabled = true;
-        grappleLine.SetPosition(1, hitPoint);
+        grappleJoint.enabled = true;        
         _isGrappled = true;
 
-        // Start dynamic rope wobble
+
+        // Visual & collision setup
+        grappleLine.SetPosition(1, hitPoint);
+            // Start dynamic rope wobble
         isWobbling = true;
-        wobbleElapsed = 0f;
+        wobbleElapsed = 0f;        
 
         // Change shell material to make more bouncy when attached
         shellCollider.sharedMaterial = grappledMaterial;
@@ -438,31 +457,106 @@ public class HeadControl : MonoBehaviour
         grappleJoint.distance = Mathf.Max(grappleMinLength, grappleJoint.distance - dynamicSpeed * Time.fixedDeltaTime);
     }
 
+    // private void HandleJumpPush()
+    // {
+    //     if (!jumpActive || !grappleJoint.enabled || !grappleHit || currentAnchorInstance == null)
+    //         return;
+
+    //     Vector2 anchorPos = grappleJoint.connectedBody.position;
+    //     float currentDistance = Vector2.Distance(rb.position, anchorPos);
+
+    //     // Prevent the joint from applying small backward forces
+    //     float tolerance = 0.05f; // 5cm slack
+    //     if (currentDistance - grappleJoint.distance > tolerance)
+    //     {
+    //         grappleJoint.distance = currentDistance;
+    //     }
+
+    //     // Animate extension up to max length
+    //     if (grappleJoint.distance < jumpMaxLength)
+    //     {
+
+    //         jumpElapsed += Time.fixedDeltaTime;
+
+    //         float t = Mathf.Clamp01(jumpElapsed / jumpDuration);
+    //         float speedMultiplier = jumpPushCurve.Evaluate(t);
+
+    //         // Scale based on distance of grapple hit
+    //         float proximityFactor = Mathf.Clamp01(1f - (jumpInitialDistance / jumpMaxLength)); // 1 = very close, 0 = near max range
+    //         float dynamicSpeed = jumpSpeed * speedMultiplier * proximityFactor;
+
+    //         grappleJoint.distance = Mathf.Min(jumpMaxLength, grappleJoint.distance + dynamicSpeed);
+    //     }
+    //     else if (!isRetractingGrapple)
+    //     {
+    //         StartRetraction();
+    //     }
+    // }
     private void HandleJumpPush()
+{
+    if (!isJumping || !Input.GetKey(KeyCode.Space))
+        return;
+
+    // PHASE 1: Firing and not yet connected
+    if (isFiringGrapple && !grappleHit)
     {
-        if (!jumpActive || !grappleJoint.enabled || !grappleHit || currentAnchorInstance == null)
+        float extendAmount = grappleSpeed * Time.fixedDeltaTime;
+        grappleCurrentLength += extendAmount;
+
+        if (grappleCurrentLength >= grappleMaxLength)
+        {
+            StartRetraction();
             return;
-
-        float currentDistanceToAnchor = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
-
-        // If we’re not at full length and still holding jump, push outward
-        if (currentDistanceToAnchor < jumpMaxLength && Input.GetKey(KeyCode.Space))
-        {
-            jumpElapsed += Time.fixedDeltaTime;
-
-            float t = Mathf.Clamp01(jumpElapsed / jumpDuration);
-            float speedMultiplier = jumpPushCurve.Evaluate(t);
-            float dynamicSpeed = quickPullSpeed * speedMultiplier;
-
-            grappleJoint.distance = Mathf.Min(jumpMaxLength, grappleJoint.distance + dynamicSpeed * Time.fixedDeltaTime);
-            lastDistanceToAnchor = currentDistanceToAnchor;
         }
-        else
+
+        grappleEnd = (Vector2)rb.position + grappleDirection * grappleCurrentLength;
+
+        RaycastHit2D hit = Physics2D.Raycast(rb.position, grappleDirection, grappleCurrentLength, grappleLayerMask);
+        if (hit.collider != null)
         {
-            // Otherwise retract
+            grappleHit = true;
+            isFiringGrapple = false;
+
+            RemakeAnchor(hit.point);
+            grappleEnd = hit.point;
+            jumpElapsed = 0f;
+            jumpActive = true;
+            jumpInitialDistance = Vector2.Distance(rb.position, hit.point);
+        }
+    }
+    // PHASE 2: Connected, simulate extension and push
+    else if (grappleHit && jumpActive && currentAnchorInstance != null)
+    {
+        jumpElapsed += Time.fixedDeltaTime;
+
+        // Extend visually
+        grappleCurrentLength += jumpPostAttachExtendSpeed * Time.fixedDeltaTime;
+
+        // Simulate joint push
+        Vector2 anchorPos = currentAnchorInstance.transform.position;
+        Vector2 toPlayer = rb.position - anchorPos;
+        float currentDistance = toPlayer.magnitude;
+
+        if (currentDistance < grappleCurrentLength)
+        {
+            Vector2 awayDir = toPlayer.normalized;
+            float extendDelta = grappleCurrentLength - currentDistance;
+            float t = Mathf.Clamp01(jumpElapsed / jumpDuration);
+            float curveMultiplier = jumpForceCurve.Evaluate(t);
+            float force = extendDelta * jumpForceMultiplier * curveMultiplier;
+            rb.AddForce(awayDir * force, ForceMode2D.Force);
+        }
+
+        // Visual rope endpoint
+        grappleEnd = anchorPos;
+
+        // Stop if max range hit
+        if (grappleCurrentLength >= jumpMaxLength)
+        {
             StartRetraction();
         }
     }
+}
 
 
     private void RemakeAnchor(Vector2 target)
@@ -476,9 +570,22 @@ public class HeadControl : MonoBehaviour
 
     private void StartRetraction()
     {
-
+        
         if (!grappleLine.enabled || isRetractingGrapple)
             return;
+
+        isRetractingGrapple = true;
+
+        // if (grappleHit && grappleJoint.connectedBody != null)
+        // {
+        //     // If connected, sets current length for retraction animation to interpolate from.
+        //     grappleCurrentLength = Vector2.Distance(rb.position, grappleJoint.connectedBody.position);
+        // }
+
+        if (grappleHit && currentAnchorInstance != null)
+        {
+            grappleCurrentLength = Vector2.Distance(rb.position, currentAnchorInstance.transform.position);
+        }
 
         // Inject impulse momentum immediately if quick pulling
         if (quickPullActive && currentAnchorInstance != null)
@@ -503,8 +610,10 @@ public class HeadControl : MonoBehaviour
             }
         }
 
+        // If retracting after jump
         if (jumpActive && currentAnchorInstance != null)
         {
+            float verticalVel = rb.velocity.y;
 
             Vector2 anchorPos = currentAnchorInstance.transform.position;
             Vector2 awayFromAnchor = (rb.position - anchorPos).normalized;
@@ -516,16 +625,23 @@ public class HeadControl : MonoBehaviour
             // If moving towards the anchor, inject a bit of impulse in that direction
             if (radialSpeed > 0f)
             {
-                Vector2 impulse = awayFromAnchor * radialSpeed * pullBoostFactor; // Maybe create jumpBoostFactor if having separate factors feels better.
+                Vector2 impulse = awayFromAnchor * radialSpeed * jumpBoostFactor; // Maybe create jumpBoostFactor if having separate factors feels better.
                 rb.AddForce(impulse, ForceMode2D.Impulse);
             }
             else
             {
                 Debug.Log("[JumpRelease] Radial speed too low to apply impulse.");
             }
+
+            // Only preserve velocity if falling
+            if (verticalVel < 0f)
+            {
+                // Slight boost to ensure no suddent halt
+                rb.velocity = new Vector2(rb.velocity.x, verticalVel * jumpVerticalVelBoost);
+            }
         }
 
-        isRetractingGrapple = true;
+        isRetractingGrapple = false;
         isFiringGrapple = false;
         grappleHit = false;
         _isGrappled = false;
@@ -533,26 +649,13 @@ public class HeadControl : MonoBehaviour
         isJumping = false;
         jumpActive = false;
 
-        // Disable joint if connected
-        if (grappleJoint.enabled)
-        {
-            grappleJoint.enabled = false;
-            grappleJoint.connectedBody = null;
-        }
+        StartCoroutine(FinishRetractionSmoothly());
 
-        if (currentAnchorInstance != null)
-        {
-            Destroy(currentAnchorInstance);
-            currentAnchorInstance = null;
-        }
-
-        // Revert shell material just in case
-        shellCollider.sharedMaterial = defaultMaterial;
     }
 
     public void ResetState()
     {
-         // Fully cancel grapple and joint (instead of using CancelGrapple() because it reacts too slowly it seems)
+        // Fully cancel grapple and joint (instead of using CancelGrapple() because it reacts too slowly it seems)
         if (grappleJoint != null)
         {
             grappleJoint.enabled = false;
@@ -600,5 +703,12 @@ public class HeadControl : MonoBehaviour
         yield return new WaitForSeconds(delay);
         inputLocked = false;
     }
+    
+    private IEnumerator FinishRetractionSmoothly()
+    {
+        yield return new WaitForFixedUpdate(); // Let physics forces resolve
+        CancelGrapple(); // Handles the cleanup and disabling visuals
+    }
+
 
 }

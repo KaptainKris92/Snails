@@ -350,14 +350,14 @@ MonoBehaviour:
   quickPullGraceTime: 0.15
   quickPullStuckTolerance: 0.01
   pullBoostFactor: 0.1
-  jumpMaxLength: 10
+  jumpMaxLength: 5
   jumpDuration: 0.2
   jumpPushCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.04166794
-      value: 0.50234985
+      time: -0.032985687
+      value: 0.60446167
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -591,6 +591,7 @@ MonoBehaviour:
   chunksY: 4
   force: 2
   chunkScaleFactor: 2
+  momentumStrength: 3
 --- !u!1 &6130017197971851151
 GameObject:
   m_ObjectHideFlags: 0

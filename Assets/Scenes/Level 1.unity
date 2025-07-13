@@ -7541,6 +7541,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpDuration
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
+      propertyPath: jumpMaxLength
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 9222220570338507870, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
       propertyPath: m_Name
       value: Snail

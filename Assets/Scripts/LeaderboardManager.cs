@@ -62,6 +62,9 @@ public class LeaderboardManager : MonoBehaviour
 
         if (scene.name == "MainMenu")
         {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            
             AssignMainMenuUIReferences();             
 
             if (GameSessionManager.Instance.SetupComplete)
