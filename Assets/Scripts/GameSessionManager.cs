@@ -7,7 +7,6 @@ public class GameSessionManager : MonoBehaviour
     public static GameSessionManager Instance { get; private set; }
 
     public string PlayerName { get; private set; }
-    public string NgrokURL { get; private set; }
 
     public bool SetupComplete { get; private set; } = false;
 
@@ -28,10 +27,9 @@ public class GameSessionManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
     }
 
-    public void SetPlayerInfo(string playerName, string ngrokURL)
+    public void SetPlayerInfo(string playerName)
     {
         PlayerName = playerName;
-        NgrokURL = ngrokURL;
         SetupComplete = true;
     }
 

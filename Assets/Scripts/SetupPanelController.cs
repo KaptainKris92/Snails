@@ -5,19 +5,17 @@ using TMPro;
 public class SetupPanelController : MonoBehaviour
 {
     [SerializeField] private TMP_InputField nameInput;
-    [SerializeField] private TMP_InputField ngrokInput;
     [SerializeField] private GameObject setupPanel;
 
     public void Submit()
     {
-        string name = nameInput.text.Trim();
-        string ngrok = ngrokInput.text.Trim();
+        string name = nameInput.text.Trim();        
 
-        Debug.Log($"Submit() called. Name: {name}, URL: {ngrok}");
+        Debug.Log($"Submit() called. Name: {name}");
 
-        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(ngrok))
+        if (!string.IsNullOrEmpty(name))
         {
-            GameSessionManager.Instance.SetPlayerInfo(name, ngrok);
+            GameSessionManager.Instance.SetPlayerInfo(name);
             setupPanel.SetActive(false); // Hide the panel after 'Save' pressed'
 
             Time.timeScale = 1f; // Unpause the game (probably unnecessary in main menu)
@@ -28,7 +26,7 @@ public class SetupPanelController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Name or Ngrok URL is missing.");
+            Debug.LogWarning("No Name entered.");
         }
     }
 }
