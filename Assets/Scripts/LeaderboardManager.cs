@@ -22,7 +22,7 @@ public class LeaderboardManager : MonoBehaviour
     public TextMeshProUGUI leaderboardText;
 
     private string playerName;
-    private string baseUrl = "";
+    private string baseUrl = "https://snails-production-0717.up.railway.app";
     private float playerScore;
     private bool leaderboardOnline = false;
     public static bool InputBlocked = true;
@@ -335,7 +335,7 @@ public class LeaderboardManager : MonoBehaviour
     public void SetSessionValues()
     {
         playerName = GameSessionManager.Instance.PlayerName;
-        baseUrl = "snails-production-0717.up.railway.app"; // Railway-hosted DB. 
+        // baseUrl = "https://snails-production-0717.up.railway.app"; // Railway-hosted DB. 
         Debug.Log($"SetSessionValues: Name = {playerName}, baseUrl = {baseUrl}");
     }
 

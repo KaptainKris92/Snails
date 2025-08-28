@@ -44,6 +44,8 @@ public class CrumbleEffect : MonoBehaviour
                     Rigidbody2D playerRb = GetComponent<Rigidbody2D>();
                     Vector2 movementDir = playerRb != null ? playerRb.velocity.normalized : Vector2.zero;
 
+                    
+
                     // Add player direction momentum as force
                     rb.AddForce(movementDir * momentumStrength, ForceMode2D.Impulse);
 
