@@ -1,9 +1,13 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class CameraFollow : MonoBehaviour
 {
+
+    [Header("Follow")]
     public Transform target;      // Player object (SnailShell)
+
     public Vector3 offset;        // Offset from the player position
 
     void Awake()

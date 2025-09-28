@@ -83,15 +83,6 @@ def top_scores():
             rows = cur.fetchall()
         return jsonify(rows)
 
-        # # Convert rows to dicts
-        # scores = [
-        #     {
-        #         'player_name': row['player_name'],
-        #         'score': row['score'],
-        #         'created_at': row['created_at']
-        #     }
-        #     for row in rows]
-        # return jsonify(scores)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
