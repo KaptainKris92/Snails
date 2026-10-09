@@ -266,11 +266,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e0129af72e4114b9de0b5a3d38bb2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalMoveForce: 0.2
-  grappledMoveForce: 0.45
-  normalTorqueForce: 0.05
-  grappledTorqueForce: 0.05
-  headControl: {fileID: 5339846983888143689}
+  rope: {fileID: 5339846983888143689}
 --- !u!232 &1439997124293024261
 DistanceJoint2D:
   m_ObjectHideFlags: 0
@@ -300,81 +296,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 3166900915203538934}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49019f38c31245a4abc35ed362c4b66f, type: 3}
+  m_Script: {fileID: 11500000, guid: acc597450eff4be4926ff7832de75c39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  grappleJoint: {fileID: 1439997124293024261}
-  grappleLine: {fileID: 684887812792719121}
-  grappleLayerMask:
+  settings: {fileID: 11400000, guid: dee730bba0c24da39b0f0a7aaa1acb95, type: 2}
+  line: {fileID: 684887812792719121}
+  terrainMask:
     serializedVersion: 2
     m_Bits: 128
-  grappleLineMaterial: {fileID: 2100000, guid: ca55308b0c8ddd14b90b10d25872f2ed, type: 2}
-  defaultMaterial: {fileID: 6200000, guid: cdc22239ed3a023469fc99033cc19d11, type: 2}
-  grappledMaterial: {fileID: 6200000, guid: 59c8a6952b2d0ff458f9e9487b36ec0a, type: 2}
-  segments: 20
-  grappleSpeed: 60
-  grappleRetractionSpeed: 80
-  grappleMaxLength: 8
-  grappleAdjustSpeed: 5.5
-  initialWobbleAmplitude: 0.05
-  initialWobbleFrequency: 1
-  wobbleDecayDuration: 0.7
-  quickPullSpeed: 10
-  quickPullExtendSpeed: 30
-  quickPullDuration: 0.6
-  quickPullSpeedCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: -0.0041656494
-      value: 0.50234985
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  quickPullGraceTime: 0.15
-  quickPullStuckTolerance: 0.01
-  pullBoostFactor: 0.1
-  jumpMaxLength: 5
-  jumpDuration: 0.2
-  jumpPushCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: -0.032985687
-      value: 0.60446167
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  freeMaterial: {fileID: 6200000, guid: cdc22239ed3a023469fc99033cc19d11, type: 2}
+  ropedMaterial: {fileID: 6200000, guid: 59c8a6952b2d0ff458f9e9487b36ec0a, type: 2}
 --- !u!120 &684887812792719121
 LineRenderer:
   serializedVersion: 2
@@ -383,7 +314,7 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3166900915203538934}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -396,7 +327,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: ca55308b0c8ddd14b90b10d25872f2ed, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -487,9 +418,9 @@ LineRenderer:
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
-    numCapVertices: 0
+    numCapVertices: 8
     alignment: 0
-    textureMode: 0
+    textureMode: 1
     textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0

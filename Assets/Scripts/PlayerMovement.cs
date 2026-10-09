@@ -1,23 +1,14 @@
-using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// Level glue for the player: spawn point, R to reset, timer start and finish panel. Movement
+/// itself (rope, A/D, ground hop) lives in RopeController.
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
 {
+    [SerializeField] private RopeController rope;
 
-    [Header("MovementSettings")]
-    [SerializeField] private float normalMoveForce = 0.01f;
-    [SerializeField] private float grappledMoveForce = 0.05f;
-
-    [Header("Spin settings")]
-    [SerializeField] private float normalTorqueForce = 0.05f;
-    [SerializeField] private float grappledTorqueForce = 0.05f;
-
-    [Header("References")]
     private Rigidbody2D rb;
-    [SerializeField] private HeadControl headControl; // Assign in inspector
-
     private Vector2 spawnPoint;
 
     void Awake()
@@ -27,7 +18,7 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
-        if (SceneManager.GetActiveScene().name.Contains("Level")) // Or tag your scenes
+        if (SceneManager.GetActiveScene().name.Contains("Level"))
         {
             LeaderboardManager.Instance?.AssignLevelUIReferences();
         }
@@ -44,6 +35,7 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         if (LeaderboardManager.InputBlocked) return;
+
         // Press 'R' to reset to spawn point
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -55,26 +47,6 @@ public class PlayerMovement : MonoBehaviour
 
             ResetPlayer();
         }
-
-    }
-
-    void FixedUpdate()
-    {
-        if (LeaderboardManager.InputBlocked) return;
-        float horizontal = Input.GetAxis("Horizontal");
-
-        float moveForce = headControl != null && headControl.isGrappled
-            ? grappledMoveForce
-            : normalMoveForce;
-
-        float torqueForce = headControl != null && headControl.isGrappled
-            ? grappledTorqueForce
-            : normalTorqueForce;
-
-        // Apply left/right force and torque
-        rb.AddForce(new Vector2(horizontal * moveForce, 0f));
-        rb.AddTorque(-horizontal * torqueForce);
-        
     }
 
     public void ResetPlayer()
@@ -83,8 +55,8 @@ public class PlayerMovement : MonoBehaviour
         Cursor.visible = false;
         EndZone.ResetLevelFlag();
 
-        if (headControl != null)
-            headControl.ResetState(); // Reset all booleans and timers.
+        if (rope != null)
+            rope.ResetRope();
 
         rb.bodyType = RigidbodyType2D.Dynamic; // Restore forces on rigidbody.
         rb.velocity = Vector2.zero;

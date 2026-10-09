@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38938cdcab3042bbb819ce3570df788e, type: 3}
+  m_Name: RopeSettings
+  m_EditorClassIdentifier: 
+  ropeMaxLength: 8
+  ropeMinLength: 0.6
+  ropeExtendSpeed: 60
+  ropeRetractSpeed: 80
+  reelSpeed: 4
+  ropedHorizontalAccelG: 0.23
+  airHorizontalAccelG: 0.1
+  maxRopedSpeed: 22
+  groundHopVelocity: 6
+  groundCheckDistance: 0.05
+  inputBuffer: 0.08
+  holdToStayAttached: 1
+  maxPivots: 8
+  pivotSurfaceOffset: 0.02
+  minWrapDistance: 0.3

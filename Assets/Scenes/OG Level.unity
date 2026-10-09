@@ -67127,54 +67127,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpSpeed
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpDuration
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpMaxLength
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpBoostFactor
-      value: 0.01
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpExtendSpeed
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpForceMultiplier
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpPushCurve.m_Curve.Array.data[1].time
-      value: 1.0215149
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpForceCurve.m_Curve.Array.data[0].time
-      value: -0.0041656494
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpPushCurve.m_Curve.Array.data[1].value
-      value: 0.9011154
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: jumpForceCurve.m_Curve.Array.data[0].value
-      value: 0.59906006
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: quickPullSpeedCurve.m_Curve.Array.data[0].time
-      value: -0.0041656494
-      objectReference: {fileID: 0}
-    - target: {fileID: 5339846983888143689, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
-      propertyPath: quickPullSpeedCurve.m_Curve.Array.data[0].value
-      value: 0.30085754
-      objectReference: {fileID: 0}
     - target: {fileID: 6491330544707652251, guid: dcb94e93079e5f04eb4875f63bed5f89, type: 3}
       propertyPath: force
       value: 1
