@@ -1,5 +1,7 @@
 using UnityEngine;
 
+/// Scatters the shell sprite into chunks. Only hides the sprite; the death handler owns freezing
+/// and respawning the player object.
 public class CrumbleEffect : MonoBehaviour
 {
     public GameObject chunkPrefab;
@@ -17,6 +19,9 @@ public class CrumbleEffect : MonoBehaviour
 
         Bounds bounds = sr.bounds;
         Vector2 chunkSize = new Vector2(bounds.size.x / chunksX, bounds.size.y / chunksY);
+
+        Rigidbody2D playerRb = GetComponent<Rigidbody2D>();
+        Vector2 movementDir = playerRb != null ? playerRb.linearVelocity.normalized : Vector2.zero;
 
         int spriteIndex = 0;
         for (int x = 0; x < chunksX; x++)
@@ -40,21 +45,13 @@ public class CrumbleEffect : MonoBehaviour
                 Rigidbody2D rb = chunk.GetComponent<Rigidbody2D>();
                 if (rb)
                 {
-                    // Transfer player's momentum into the chunks
-                    Rigidbody2D playerRb = GetComponent<Rigidbody2D>();
-                    Vector2 movementDir = playerRb != null ? playerRb.linearVelocity.normalized : Vector2.zero;
-
-                    
-
-                    // Add player direction momentum as force
+                    // Transfer the player's momentum into the chunks, plus a random scatter.
                     rb.AddForce(movementDir * momentumStrength, ForceMode2D.Impulse);
 
-                    // Random force for scatter
                     Vector2 randomDir = new Vector2(
                         Random.Range(-1f, 1f),
                         Random.Range(0.5f, 1.5f)
                     ).normalized;
-
                     rb.AddForce(randomDir * force, ForceMode2D.Impulse);
                 }
 
@@ -62,7 +59,6 @@ public class CrumbleEffect : MonoBehaviour
             }
         }
 
-        sr.enabled = false; // Hide the original sprite
-        gameObject.SetActive(false);// Disable player gameOjevt
+        sr.enabled = false; // Hide the original sprite until respawn
     }
 }

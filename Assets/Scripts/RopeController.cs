@@ -1,9 +1,11 @@
 using UnityEngine;
 
-/// The grapple rope. One rope, one explicit state:
+/// The snail's body. It is the grapple rope and the push-off limb, so it can only do one thing at
+/// a time. One explicit state:
 ///
-///   Idle -> Firing -> Attached -> Idle
-///                  \-> Missed  -> Idle
+///   Idle -> Firing  -> Attached -> Idle        (LMB: grapple)
+///   Idle -> Pushing -> Missed   -> Idle        (Space: push off something in reach)
+///   Firing / Pushing -> Missed -> Idle         (nothing in reach)
 ///
 /// Input is read in Update into a small buffer and consumed in FixedUpdate, so a press is never
 /// lost between physics steps. While attached the shell hangs from a rigid DistanceJoint2D whose
@@ -12,7 +14,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D), typeof(DistanceJoint2D), typeof(CircleCollider2D))]
 public class RopeController : MonoBehaviour
 {
-    public enum RopeState { Idle, Firing, Attached, Missed }
+    public enum RopeState { Idle, Firing, Attached, Missed, Pushing }
 
     [SerializeField] private RopeSettings settings;
     [SerializeField] private LineRenderer line;
@@ -31,13 +33,14 @@ public class RopeController : MonoBehaviour
     private float firePressedAt = float.NegativeInfinity;
     private Vector2 fireAimWorld;
     private bool fireHeld;
-    private float hopPressedAt = float.NegativeInfinity;
+    private float pushPressedAt = float.NegativeInfinity;
+    private Vector2 pushAimWorld;
     private float reel;       // +1 reel in (W), -1 reel out (S)
     private float horizontal; // -1..1 (A/D)
 
-    // Rope state
-    private Vector2 fireDirection;
-    private float tipLength; // distance of the visual tip from the shell while Firing / Missed
+    // Body state
+    private Vector2 tipDirection;
+    private float tipLength; // distance of the visual tip from the shell while Firing / Pushing / Missed
     private readonly RopePivots pivots = new RopePivots();
     private Vector3[] linePoints;
 
@@ -67,11 +70,15 @@ public class RopeController : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             firePressedAt = Time.unscaledTime;
-            fireAimWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            fireAimWorld = MouseWorld();
         }
         fireHeld = Input.GetMouseButton(0);
+
         if (Input.GetKeyDown(KeyCode.Space))
-            hopPressedAt = Time.unscaledTime;
+        {
+            pushPressedAt = Time.unscaledTime;
+            pushAimWorld = MouseWorld();
+        }
 
         reel = (Input.GetKey(KeyCode.W) ? 1f : 0f) - (Input.GetKey(KeyCode.S) ? 1f : 0f);
         horizontal = Input.GetAxisRaw("Horizontal");
@@ -80,24 +87,38 @@ public class RopeController : MonoBehaviour
     void FixedUpdate()
     {
         ConsumeFireInput();
+        ConsumePushInput();
 
         switch (State)
         {
             case RopeState.Firing: StepFiring(); break;
+            case RopeState.Pushing: StepPushing(); break;
             case RopeState.Attached: StepAttached(); break;
             case RopeState.Missed: StepMissed(); break;
         }
 
         ApplyHorizontalInput();
-        ConsumeHopInput();
     }
 
     void LateUpdate()
     {
-        DrawRope();
+        DrawBody();
     }
 
     // ---------------------------------------------------------------- input
+
+    private static Vector2 MouseWorld()
+    {
+        return Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    }
+
+    private bool TakeBufferedPress(ref float pressedAt)
+    {
+        if (Time.unscaledTime - pressedAt > settings.inputBuffer)
+            return false;
+        pressedAt = float.NegativeInfinity;
+        return true;
+    }
 
     private void ConsumeFireInput()
     {
@@ -111,10 +132,8 @@ public class RopeController : MonoBehaviour
             return;
         }
 
-        bool pressBuffered = Time.unscaledTime - firePressedAt <= settings.inputBuffer;
-        if (!pressBuffered)
+        if (!TakeBufferedPress(ref firePressedAt))
             return;
-        firePressedAt = float.NegativeInfinity;
 
         if (State == RopeState.Attached)
         {
@@ -124,19 +143,29 @@ public class RopeController : MonoBehaviour
             return;
         }
 
-        // Idle, Missed or still Firing: fire (a re-fire replaces the shot in flight).
-        StartFiring(fireAimWorld);
+        // Idle, Missed, Pushing or still Firing: the body goes out as a grapple.
+        StartExtending(fireAimWorld, RopeState.Firing);
     }
 
-    private void ConsumeHopInput()
+    private void ConsumePushInput()
     {
-        if (Time.unscaledTime - hopPressedAt > settings.inputBuffer)
+        if (!TakeBufferedPress(ref pushPressedAt))
             return;
-        if (!IsGrounded())
-            return; // keep the press buffered until it expires, so a press just before landing still hops
 
-        hopPressedAt = float.NegativeInfinity;
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, settings.groundHopVelocity);
+        if (State == RopeState.Attached)
+        {
+            // The body is already out on the rope. If the anchor is close enough to push against,
+            // let go and shove off it; otherwise the press does nothing.
+            Vector2 anchor = pivots.Last;
+            if (Vector2.Distance(rb.position, anchor) <= settings.pushOffRange)
+            {
+                Release();
+                PushAwayFrom(anchor);
+            }
+            return;
+        }
+
+        StartExtending(pushAimWorld, RopeState.Pushing);
     }
 
     private void ApplyHorizontalInput()
@@ -151,12 +180,12 @@ public class RopeController : MonoBehaviour
 
     // ---------------------------------------------------------------- states
 
-    private void StartFiring(Vector2 aimWorld)
+    private void StartExtending(Vector2 aimWorld, RopeState mode)
     {
         Vector2 dir = aimWorld - rb.position;
-        fireDirection = dir.sqrMagnitude > 1e-6f ? dir.normalized : Vector2.up;
+        tipDirection = dir.sqrMagnitude > 1e-6f ? dir.normalized : Vector2.up;
         tipLength = 0f;
-        State = RopeState.Firing;
+        State = mode;
         line.enabled = true;
     }
 
@@ -170,9 +199,44 @@ public class RopeController : MonoBehaviour
             return;
         }
 
-        RaycastHit2D hit = Physics2D.Raycast(rb.position, fireDirection, tipLength, terrainMask);
+        RaycastHit2D hit = Physics2D.Raycast(rb.position, tipDirection, tipLength, terrainMask);
         if (hit.collider != null)
             Attach(hit.point);
+    }
+
+    private void StepPushing()
+    {
+        tipLength += settings.ropeExtendSpeed * Time.fixedDeltaTime;
+        if (tipLength >= settings.pushOffRange)
+        {
+            tipLength = settings.pushOffRange;
+            State = RopeState.Missed;
+            return;
+        }
+
+        RaycastHit2D hit = Physics2D.Raycast(rb.position, tipDirection, tipLength, terrainMask);
+        if (hit.collider != null)
+        {
+            PushAwayFrom(hit.point);
+            tipLength = hit.distance;
+            State = RopeState.Missed; // the body snaps back
+        }
+    }
+
+    /// Shove the shell directly away from a point. Any velocity still heading into the point is
+    /// cancelled first, so a push-off is always a clean departure.
+    private void PushAwayFrom(Vector2 point)
+    {
+        Vector2 away = rb.position - point;
+        if (away.sqrMagnitude < 1e-6f)
+            return;
+        away.Normalize();
+
+        Vector2 v = rb.linearVelocity;
+        float into = Vector2.Dot(v, away);
+        if (into < 0f)
+            v -= away * into;
+        rb.linearVelocity = v + away * settings.pushOffSpeed;
     }
 
     private void Attach(Vector2 anchor)
@@ -195,7 +259,10 @@ public class RopeController : MonoBehaviour
 
         if (reel > 0f)
         {
-            joint.distance = Mathf.Max(settings.ropeMinLength, joint.distance - settings.reelSpeed * dt);
+            // Reel in from the real distance, never from a target the shell could not reach, so the
+            // joint error stays within one step's worth.
+            float from = Mathf.Min(joint.distance, Vector2.Distance(rb.position, pivots.Last));
+            joint.distance = Mathf.Max(settings.ropeMinLength, from - settings.reelSpeed * dt);
         }
         else if (reel < 0f)
         {
@@ -205,10 +272,24 @@ public class RopeController : MonoBehaviour
         }
 
         UpdateWrapping();
+        YieldToTerrain();
 
         float maxSpeed = settings.maxRopedSpeed;
         if (rb.linearVelocity.sqrMagnitude > maxSpeed * maxSpeed)
             rb.linearVelocity = rb.linearVelocity.normalized * maxSpeed;
+    }
+
+    /// A rigid joint and a terrain contact can disagree about where the shell may be. In free
+    /// swing the joint wins (loops work). Touching terrain, the rope yields instead: a large joint
+    /// error would otherwise be corrected straight through the floor.
+    private void YieldToTerrain()
+    {
+        if (!shell.IsTouchingLayers(terrainMask))
+            return;
+
+        float actual = Vector2.Distance(rb.position, pivots.Last);
+        if (Mathf.Abs(actual - joint.distance) > settings.ropeSlackTolerance)
+            joint.distance = actual;
     }
 
     private void Release()
@@ -232,12 +313,12 @@ public class RopeController : MonoBehaviour
         }
     }
 
-    /// Called on a level reset: drop the rope and forget any buffered input.
+    /// Called on a level reset: pull the body in and forget any buffered input.
     public void ResetRope()
     {
         Release();
         firePressedAt = float.NegativeInfinity;
-        hopPressedAt = float.NegativeInfinity;
+        pushPressedAt = float.NegativeInfinity;
     }
 
     // ---------------------------------------------------------------- wrapping
@@ -278,15 +359,9 @@ public class RopeController : MonoBehaviour
             joint.connectedAnchor = pivots.Last;
     }
 
-    // ---------------------------------------------------------------- helpers
+    // ---------------------------------------------------------------- visuals
 
-    private bool IsGrounded()
-    {
-        float radius = shell.radius * Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
-        return Physics2D.CircleCast(rb.position, radius, Vector2.down, settings.groundCheckDistance, terrainMask).collider != null;
-    }
-
-    private void DrawRope()
+    private void DrawBody()
     {
         if (!line.enabled)
             return;
@@ -305,7 +380,7 @@ public class RopeController : MonoBehaviour
         {
             count = 2;
             linePoints[0] = body;
-            linePoints[1] = body + (Vector3)(fireDirection * tipLength);
+            linePoints[1] = body + (Vector3)(tipDirection * tipLength);
         }
 
         line.positionCount = count;

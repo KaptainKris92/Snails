@@ -1,29 +1,56 @@
+using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
+/// Death: crumble, freeze, then respawn at the spawn point without reloading the scene.
+[RequireComponent(typeof(Rigidbody2D), typeof(PlayerMovement))]
 public class PlayerDeathHandler : MonoBehaviour
 {
-    public float restartDelay = 0.5f;
+    [Tooltip("Seconds between the crumble and the respawn.")]
+    public float restartDelay = 0.35f;
 
-    private bool isDying = false;
+    private bool isDying;
+    private Rigidbody2D rb;
+    private Collider2D shellCollider;
+    private SpriteRenderer sprite;
+    private PlayerMovement movement;
+    private RopeController rope;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        shellCollider = GetComponent<Collider2D>();
+        sprite = GetComponent<SpriteRenderer>();
+        movement = GetComponent<PlayerMovement>();
+        rope = GetComponent<RopeController>();
+    }
 
     public void TriggerDeath()
     {
         if (isDying) return;
+        isDying = true;
 
-        isDying = true;        
+        if (rope != null)
+            rope.ResetRope();
 
-        GetComponent<CrumbleEffect>().TriggerCrumble();
+        GetComponent<CrumbleEffect>()?.TriggerCrumble();
 
-        // Stops velocity
-        GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
-        GetComponent<Rigidbody2D>().isKinematic = true;
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.bodyType = RigidbodyType2D.Static;
+        shellCollider.enabled = false;
 
-        Invoke(nameof(RestartLevel), restartDelay);
+        StartCoroutine(RespawnAfterDelay());
     }
 
-    void RestartLevel()
+    private IEnumerator RespawnAfterDelay()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        yield return new WaitForSeconds(restartDelay);
+
+        if (sprite != null)
+            sprite.enabled = true;
+        shellCollider.enabled = true;
+        isDying = false;
+
+        movement.ResetPlayer();
     }
 }

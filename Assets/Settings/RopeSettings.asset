@@ -17,11 +17,12 @@ MonoBehaviour:
   ropeExtendSpeed: 60
   ropeRetractSpeed: 80
   reelSpeed: 4
+  ropeSlackTolerance: 0.05
+  pushOffRange: 3
+  pushOffSpeed: 8
   ropedHorizontalAccelG: 0.23
   airHorizontalAccelG: 0.1
   maxRopedSpeed: 22
-  groundHopVelocity: 6
-  groundCheckDistance: 0.05
   inputBuffer: 0.08
   holdToStayAttached: 1
   maxPivots: 8
