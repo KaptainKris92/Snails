@@ -12,7 +12,7 @@ using UnityEngine.Tilemaps;
 /// a 2x2 block of half-unit tiles on a Tilemap with a single CompositeCollider2D (no seams).
 ///
 ///   #  solid        /  floor slope rising to the right     \  floor slope falling to the right
-///   q  ceiling slope, solid top-left                        p  ceiling slope, solid top-right
+///   q  ceiling slope rising to the right (solid top-left)   p  ceiling slope falling to the right (solid top-right)
 ///   ^  thorns (deadly)   S  spawn   E  end zone (any number of cells)   . or space  air
 ///   lines starting with // are comments
 ///
@@ -93,13 +93,14 @@ public static class LevelBuilder
                         Set(solid, subTiles, cx, cy, "#"); Set(solid, subTiles, cx + 1, cy, "RATriangle_UR");
                         Set(solid, subTiles, cx, cy + 1, "RATriangle_UR");
                         break;
-                    case 'q': // solid above the diagonal from top-left to bottom-right
-                        Set(solid, subTiles, cx, cy + 1, "RATriangle_BR"); Set(solid, subTiles, cx + 1, cy + 1, "#");
-                        Set(solid, subTiles, cx + 1, cy, "RATriangle_BR");
+                    // Slope sprites are named after their transparent corner.
+                    case 'q': // ceiling rising to the right: solid above the diagonal bottom-left -> top-right
+                        Set(solid, subTiles, cx, cy + 1, "#"); Set(solid, subTiles, cx + 1, cy + 1, "RATriangle_BR");
+                        Set(solid, subTiles, cx, cy, "RATriangle_BR");
                         break;
-                    case 'p': // solid above the diagonal from bottom-left to top-right
-                        Set(solid, subTiles, cx, cy + 1, "#"); Set(solid, subTiles, cx + 1, cy + 1, "RATriangle_BL");
-                        Set(solid, subTiles, cx, cy, "RATriangle_BL");
+                    case 'p': // ceiling falling to the right: solid above the diagonal top-left -> bottom-right
+                        Set(solid, subTiles, cx, cy + 1, "RATriangle_BL"); Set(solid, subTiles, cx + 1, cy + 1, "#");
+                        Set(solid, subTiles, cx + 1, cy, "RATriangle_BL");
                         break;
                     case '^':
                         thorns[cx, cy] = thorns[cx + 1, cy] = thorns[cx, cy + 1] = thorns[cx + 1, cy + 1] = true;

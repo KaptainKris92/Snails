@@ -289,7 +289,7 @@ public class RopeController : MonoBehaviour
 
         float actual = Vector2.Distance(rb.position, pivots.Last);
         if (Mathf.Abs(actual - joint.distance) > settings.ropeSlackTolerance)
-            joint.distance = actual;
+            joint.distance = Mathf.Min(actual, settings.ropeMaxLength - pivots.WrappedLength);
     }
 
     private void Release()
