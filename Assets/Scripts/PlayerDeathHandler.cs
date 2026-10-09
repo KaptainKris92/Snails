@@ -16,7 +16,7 @@ public class PlayerDeathHandler : MonoBehaviour
         GetComponent<CrumbleEffect>().TriggerCrumble();
 
         // Stops velocity
-        GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
         GetComponent<Rigidbody2D>().isKinematic = true;
 
         Invoke(nameof(RestartLevel), restartDelay);

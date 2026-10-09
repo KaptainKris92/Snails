@@ -42,7 +42,7 @@ public class CrumbleEffect : MonoBehaviour
                 {
                     // Transfer player's momentum into the chunks
                     Rigidbody2D playerRb = GetComponent<Rigidbody2D>();
-                    Vector2 movementDir = playerRb != null ? playerRb.velocity.normalized : Vector2.zero;
+                    Vector2 movementDir = playerRb != null ? playerRb.linearVelocity.normalized : Vector2.zero;
 
                     
 

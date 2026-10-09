@@ -18,7 +18,7 @@ public class EndZone : MonoBehaviour
             Rigidbody2D rb = other.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
-                rb.velocity = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
                 rb.angularVelocity = 0f;
                 rb.bodyType = RigidbodyType2D.Static; // Prevents all movements and forces
 

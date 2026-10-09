@@ -136,7 +136,7 @@ public class RopeController : MonoBehaviour
             return; // keep the press buffered until it expires, so a press just before landing still hops
 
         hopPressedAt = float.NegativeInfinity;
-        rb.velocity = new Vector2(rb.velocity.x, settings.groundHopVelocity);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, settings.groundHopVelocity);
     }
 
     private void ApplyHorizontalInput()
@@ -207,8 +207,8 @@ public class RopeController : MonoBehaviour
         UpdateWrapping();
 
         float maxSpeed = settings.maxRopedSpeed;
-        if (rb.velocity.sqrMagnitude > maxSpeed * maxSpeed)
-            rb.velocity = rb.velocity.normalized * maxSpeed;
+        if (rb.linearVelocity.sqrMagnitude > maxSpeed * maxSpeed)
+            rb.linearVelocity = rb.linearVelocity.normalized * maxSpeed;
     }
 
     private void Release()

@@ -59,7 +59,7 @@ public class PlayerMovement : MonoBehaviour
             rope.ResetRope();
 
         rb.bodyType = RigidbodyType2D.Dynamic; // Restore forces on rigidbody.
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;
         transform.position = spawnPoint;
 

@@ -73,3 +73,5 @@ crashlytics-build.properties
 
 venv/
 Database/leaderboard.db
+# Unity 6 generated solution
+*.slnx
