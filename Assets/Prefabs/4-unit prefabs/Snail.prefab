@@ -250,7 +250,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
@@ -266,8 +266,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e0129af72e4114b9de0b5a3d38bb2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalMoveForce: 0.01
-  grappledMoveForce: 0.1
+  normalMoveForce: 0.2
+  grappledMoveForce: 0.45
   normalTorqueForce: 0.05
   grappledTorqueForce: 0.05
   headControl: {fileID: 5339846983888143689}
@@ -281,7 +281,7 @@ DistanceJoint2D:
   m_Enabled: 0
   serializedVersion: 4
   m_EnableCollision: 0
-  m_ConnectedRigidBody: {fileID: 8231216342782380848}
+  m_ConnectedRigidBody: {fileID: 0}
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_BreakAction: 3
@@ -305,7 +305,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grappleJoint: {fileID: 1439997124293024261}
   grappleLine: {fileID: 684887812792719121}
-  grappleAnchorPrefab: {fileID: 1085550101733579573, guid: 71c5121d861766c42967e21bb2b15653, type: 3}
   grappleLayerMask:
     serializedVersion: 2
     m_Bits: 128
@@ -313,8 +312,8 @@ MonoBehaviour:
   defaultMaterial: {fileID: 6200000, guid: cdc22239ed3a023469fc99033cc19d11, type: 2}
   grappledMaterial: {fileID: 6200000, guid: 59c8a6952b2d0ff458f9e9487b36ec0a, type: 2}
   segments: 20
-  grappleSpeed: 20
-  grappleRetractionSpeed: 50
+  grappleSpeed: 60
+  grappleRetractionSpeed: 80
   grappleMaxLength: 8
   grappleAdjustSpeed: 5.5
   initialWobbleAmplitude: 0.05
@@ -376,8 +375,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  minUpwardGravityScale: 1
-  upwardVelocitySmoothing: 10
 --- !u!120 &684887812792719121
 LineRenderer:
   serializedVersion: 2
